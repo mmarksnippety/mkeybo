@@ -19,7 +19,7 @@ public:
         SwitchReader<switches_count> *switch_reader,
         SwitchStateUpdater<switches_count> *switch_state_updater,
         Mapper<switches_count> *mapper,
-        HIDKeyReporter<switches_count> *hid_key_reporter,
+        vector<HIDReporter<switches_count> *> reporters,
         PWMLed *right_led,
         PWMLed *left_led)
         : Keyboard<switches_count>(
@@ -28,7 +28,7 @@ public:
               switch_reader,
               switch_state_updater,
               mapper,
-              hid_key_reporter),
+              reporters),
           right_led_(right_led), left_led_(left_led) {}
 
     void init() override {

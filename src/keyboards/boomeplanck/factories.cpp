@@ -17,10 +17,8 @@ Mapper<SWITCH_MATRIX_SWITCHES_COUNT> *mapper_factory(
         keyboard_settings,
         keyboard_state,
         {
-            {"key",
-             new MapperRuleKey<SWITCH_MATRIX_SWITCHES_COUNT>(keyboard_settings, keyboard_state)},
-            {"layer_switch",
-            new MapperRuleLayerSwitch<SWITCH_MATRIX_SWITCHES_COUNT>(keyboard_settings, keyboard_state)}
+            new MapperRuleKey<SWITCH_MATRIX_SWITCHES_COUNT>(keyboard_settings, keyboard_state),
+            new MapperRuleMultiSwitchKey<SWITCH_MATRIX_SWITCHES_COUNT>(keyboard_settings, keyboard_state)
         }
     );
     // clang-format on
@@ -40,7 +38,6 @@ BoomeplanckKeyboard<SWITCH_MATRIX_SWITCHES_COUNT> *keyboard_factory() {
         new SwitchStateUpdater<SWITCH_MATRIX_SWITCHES_COUNT>(keyboard_settings, keyboard_state);
     auto mapper_config = mapper_config_factory();
     auto mapper = mapper_factory(mapper_config, keyboard_settings, keyboard_state);
-    auto hid_key_reporter = new HIDKeyReporter<SWITCH_MATRIX_SWITCHES_COUNT>(keyboard_state);
     auto left_led = new PWMLed(5, 0);
     auto right_led = new PWMLed(4, 0);
     return new BoomeplanckKeyboard<SWITCH_MATRIX_SWITCHES_COUNT>(
@@ -49,7 +46,8 @@ BoomeplanckKeyboard<SWITCH_MATRIX_SWITCHES_COUNT> *keyboard_factory() {
         switch_reader,
         switch_state_updater,
         mapper,
-        hid_key_reporter,
+        {new HIDKeyReporter<SWITCH_MATRIX_SWITCHES_COUNT>(keyboard_state),
+         new HIDCCReporter<SWITCH_MATRIX_SWITCHES_COUNT>(keyboard_state)},
         right_led,
         left_led);
 }

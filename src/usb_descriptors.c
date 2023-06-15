@@ -74,7 +74,7 @@ uint8_t const *tud_descriptor_device_cb(void) { return (uint8_t const *)&desc_de
 
 uint8_t const desc_hid_report[] = {
     TUD_HID_REPORT_DESC_KEYBOARD(HID_REPORT_ID(REPORT_ID_KEYBOARD)),
-//    TUD_HID_REPORT_DESC_CONSUMER(HID_REPORT_ID(REPORT_ID_CONSUMER_CONTROL)),
+    TUD_HID_REPORT_DESC_CONSUMER(HID_REPORT_ID(REPORT_ID_CONSUMER_CONTROL)),
 };
 
 // Invoked when received GET HID REPORT DESCRIPTOR

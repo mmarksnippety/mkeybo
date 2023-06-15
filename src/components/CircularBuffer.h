@@ -31,16 +31,18 @@ public:
         if (size_ == buffer_.size()) {
             return false;
         } else {
-            memcpy(&buffer_[write_index_], &el, sizeof(el));
+//            memcpy(&buffer_[write_index_], &el, sizeof(el));
+            buffer_[write_index_] = el;
             write_index_ = (write_index_ + 1) % buffer_.size();
-            size_++;
+            ++size_;
             return true;
         }
     }
 
     bool remove_element(item_t &el) {
         if (size_ > 0) {
-            memcpy(&el, &buffer_[read_index_], sizeof(el));
+//            memcpy(&el, &buffer_[read_index_], sizeof(el));
+            el = buffer_[read_index_];
             read_index_ = (read_index_ + 1) % buffer_.size();
             --size_;
             return true;
@@ -49,4 +51,3 @@ public:
         }
     }
 };
-

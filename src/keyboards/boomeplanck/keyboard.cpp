@@ -32,10 +32,26 @@ void send_hid_report(uint8_t report_id) {
         return;
     }
     if (report_id == REPORT_ID_KEYBOARD) {
-        HIDKeyReport report{};
-        auto report_to_send = keyboard->hid_key_reporter()->blocking_dequeue_report(report);
-        if (report_to_send) {
-            tud_hid_keyboard_report(REPORT_ID_KEYBOARD, report.modifier, report.keycode);
+        auto reporter = reinterpret_cast<HIDKeyReporter<SWITCH_MATRIX_SWITCHES_COUNT> *>(
+            keyboard->get_hid_reporter(KCT_KEY));
+        if (reporter->is_report_to_send()) {
+            auto report = reinterpret_cast<HIDKeyReport *>(reporter->blocking_dequeue_report());
+            if (report != nullptr) {
+                tud_hid_keyboard_report(REPORT_ID_KEYBOARD, report->modifier, report->keycode.data());
+                return;
+            }
+        }
+    }
+    report_id = REPORT_ID_CONSUMER_CONTROL;  // move forward if no report
+    if (report_id == REPORT_ID_CONSUMER_CONTROL) {
+        auto reporter = reinterpret_cast<HIDCCReporter<SWITCH_MATRIX_SWITCHES_COUNT> *>(
+            keyboard->get_hid_reporter(KCT_CC_KEY));
+        if (reporter->is_report_to_send()) {
+            auto report = reinterpret_cast<HIDCCReport *>(reporter->blocking_dequeue_report());
+            if (report != nullptr) {
+                tud_hid_report(REPORT_ID_CONSUMER_CONTROL, &report->keycode, 2);
+                return;
+            }
         }
     }
 }
@@ -44,7 +60,7 @@ void send_hid_report(uint8_t report_id) {
 // Every 10ms, we will sent 1 report for each HID profile (keyboard, mouse etc ..)
 // tud_hid_report_complete_cb() is used to send the next report after previous one is complete
 bool hid_task(repeating_timer *t) {
-    bool report_to_send = keyboard->hid_key_reporter()->is_report_to_send();
+    bool report_to_send = keyboard->is_any_hid_raport_to_send();
     if (report_to_send) {
         // now we have only keyboard tasks, but in the future we may more types.
         if (tud_suspended()) {
@@ -114,6 +130,7 @@ void tud_resume_cb(void) { keyboard->on_resume(); }
 void tud_hid_report_complete_cb(uint8_t instance, uint8_t const *report, uint8_t len) {
     (void)instance;
     (void)len;
+    cout << "tud_hid_report_complete_cb" << endl;
     uint8_t next_report_id = report[0] + 1;
     if (next_report_id < REPORT_ID_COUNT) {
         send_hid_report(next_report_id);

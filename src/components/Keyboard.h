@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "CircularBuffer.h"
-#include "HIDRaportGenerator.h"
+#include "HIDRaporter.h"
 #include "KeyboardConfig.h"
 #include "KeyboardMapper.h"
 #include "KeyboardState.h"
@@ -19,7 +19,7 @@ protected:
     SwitchReader<switches_count> *switch_reader_;
     SwitchStateUpdater<switches_count> *switch_state_updater_;
     Mapper<switches_count> *mapper_;
-    HIDKeyReporter<switches_count> *hid_key_reporter_;
+    map<KeycodeType, HIDReporter<switches_count> *> reporters_;
 
 public:
     Keyboard(
@@ -28,20 +28,36 @@ public:
         SwitchReader<switches_count> *switch_reader,
         SwitchStateUpdater<switches_count> *switch_state_updater,
         Mapper<switches_count> *mapper,
-        HIDKeyReporter<switches_count> *hid_key_reporter)
+        vector<HIDReporter<switches_count> *> reporters)
         : keyboard_settings_(keyboard_settings), keyboard_state_(keyboard_state),
-          switch_reader_(switch_reader), switch_state_updater_(switch_state_updater), mapper_(mapper),
-          hid_key_reporter_(hid_key_reporter) {}
+          switch_reader_(switch_reader), switch_state_updater_(switch_state_updater), mapper_(mapper) {
+        for (const auto &reporter : reporters) {
+            reporters_[reporter->keycode_type] = reporter;
+        }
+    }
+
+    virtual void init() {
+        switch_reader_->init();
+        for (const auto &[keycode_type, reporter] : reporters_) {
+            reporter->init();
+        }
+    }
 
     KeyboardSettings const *settings() { return keyboard_settings_; }
 
     KeyboardState<switches_count> *state() { return keyboard_state_; }
 
-    HIDKeyReporter<switches_count> *hid_key_reporter() { return hid_key_reporter_; }
+    HIDReporter<switches_count> *get_hid_reporter(KeycodeType keycode_type) {
+        return reporters_[keycode_type];
+    }
 
-    virtual void init() {
-        switch_reader_->init();
-        hid_key_reporter_->init();
+    bool is_any_hid_raport_to_send() {
+        for (const auto &[keycode_type, reporter] : reporters_) {
+            if (reporter->is_report_to_send()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     void refresh() {
@@ -51,7 +67,9 @@ public:
         mapper_->make_layer_mapping();
         on_layer_change();
         mapper_->make_mapping();
-        hid_key_reporter_->blocking_enqueue_report();
+        for (auto const &[keycode_type, reporter] : reporters_) {
+            reporter->blocking_enqueue_report();
+        }
     }
 
     virtual void task() {}

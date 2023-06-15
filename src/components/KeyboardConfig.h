@@ -2,8 +2,8 @@
 
 #include <map>
 #include <string>
-#include <vector>
 #include <utility>
+#include <vector>
 
 #include "pico/stdlib.h"
 
@@ -48,7 +48,7 @@ map<uint8_t, uint8_t> MODIFIER_KEYCODE_TO_BIT = {
 enum KeycodeType {
     KCT_KEY,
     KCT_CC_KEY,
-    KCT_LAYER_CHANGE, // ?? hmm czy to może być takie fajne i proste??
+    KCT_LAYER_CHANGE,
     //     mouse_t,
     //     gamepad_t,
     //     internal_t,
@@ -56,9 +56,34 @@ enum KeycodeType {
 };
 
 
+struct Keycode {
+    uint16_t code;
+    KeycodeType type;
+};
+
+
+enum RuleConfigType {
+    RCT_MIX = 1,
+    RCT_KEY,
+    RCT_LAYER,
+};
+
+enum RuleConfigId {
+    RID_KEY = 1,
+    RID_MS_KEY,
+};
+
 class RuleConfig {
 public:
-    const string rule_id;
+    const RuleConfigId rule_id;
+    RuleConfigType type;
+
+    explicit RuleConfig(RuleConfigId rule_id, RuleConfigType type = RCT_MIX)
+        : rule_id(rule_id), type(type) {}
+
+    [[nodiscard]] bool is_layer_rule() const { return type != RCT_KEY; }
+
+    [[nodiscard]] bool is_key_rule() const { return type != RCT_LAYER; }
 };
 
 
@@ -89,16 +114,42 @@ public:
  */
 
 class RuleConfigKey : public RuleConfig {
+    using RuleConfig::type;
+
 public:
     const uint8_t switch_no;
-    const uint16_t keycode;
-    const KeycodeType keycode_type;
+    const Keycode keycode;
 
-    RuleConfigKey(uint8_t switch_no, uint16_t keycode, KeycodeType keycode_type)
-        : RuleConfig("key"), switch_no(switch_no), keycode(keycode), keycode_type(keycode_type) {}
+    RuleConfigKey(uint8_t switch_no, Keycode keycode)
+        : RuleConfig(RID_KEY, keycode.type == KCT_LAYER_CHANGE ? RCT_LAYER : RCT_KEY), switch_no(switch_no),
+          keycode(keycode) {}
 };
 
-#define K(SW, KC) new RuleConfigKey(SW, KC, KCT_KEY)
+
+class RuleConfigMultiSwitchKey : public RuleConfig {
+public:
+    const vector<uint8_t> switches_no;
+    const Keycode keycode;
+
+    RuleConfigMultiSwitchKey(const vector<uint8_t> &switches_no, Keycode keycode)
+        : RuleConfig(RID_MS_KEY, keycode.type == KCT_LAYER_CHANGE ? RCT_LAYER : RCT_KEY),
+          switches_no(switches_no), keycode(keycode) {}
+};
+
+
+// class RuleConfigTapDance: public RuleConfig {
+// public:
+//     const uint8_t switch_no;
+//     const vector<pair<KeycodeType, uint16_t>> keycode;
+// };
+
+// clang-format off
+// rules definitions
+// rules
+#define R(SW, KC) new RuleConfigKey(SW, KC)
+#define R2(SW_0, SW_1, KC) new RuleConfigMultiSwitchKey({SW_0, SW_1}, KC)
+// standard hid keycodes
+#define K(KC) Keycode { .code = KC, .type = KCT_KEY }
 #define M_(MC, KC) ((static_cast<uint16_t>(MC) << 8) | KC)
 #define M_LCTRL(KC) M_(KEYBOARD_MODIFIER_LEFTCTRL, KC)
 #define M_LSHIFT(KC) M_(KEYBOARD_MODIFIER_LEFTSHIFT, KC)
@@ -108,23 +159,8 @@ public:
 #define M_RSHIFT(KC) M_(KEYBOARD_MODIFIER_RIGHTSHIFT, KC)
 #define M_RALT(KC) M_(KEYBOARD_MODIFIER_RIGHTALT, KC)
 #define M_RGUI(KC) M_(KEYBOARD_MODIFIER_RIGHTGUI, KC)
-
-
-class RuleConfigLayerSwitch : public RuleConfig {
-public:
-    const uint8_t layer_no;
-    const vector<uint8_t> switches_no;
-
-    RuleConfigLayerSwitch(const uint8_t layer_no, const vector<uint8_t> &switches_no)
-        : RuleConfig("layer_switch"), layer_no(layer_no), switches_no(switches_no) {}
-};
-
-#define LA(SW, LA_N) new RuleConfigLayerSwitch(LA_N, {SW})
-#define LA_2B(SW_1, SW_2, LA_N) new RuleConfigLayerSwitch(LA_N, {SW_1, SW_2})
-
-
-//class RuleConfigTapDance: public RuleConfig {
-//public:
-//    const uint8_t switch_no;
-//    const vector<pair<KeycodeType, uint16_t>> keycode;
-//};
+// customer control keycodes
+#define KCC(KC) Keycode { .code = KC, .type = KCT_CC_KEY }
+// layer change keycode
+#define L(KC)  Keycode { .code = KC, .type = KCT_LAYER_CHANGE }
+// clang-format on

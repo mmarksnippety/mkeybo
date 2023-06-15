@@ -83,10 +83,8 @@ public:
     bitset<switches_count> switches_read_state{};// mechanical states
     bitset<switches_count> mapped_switches{};    // that switches are mapped in this cycle
 
-    // current cycle keycodes
+    // current and prev cycle keycodes
     array<vector<uint16_t>, KCT_COUNT> keycodes;
-
-    // prev cycle keycodes
     array<vector<uint16_t>, KCT_COUNT> prev_keycodes;
 
     KeyboardState() {
