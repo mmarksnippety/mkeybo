@@ -74,7 +74,9 @@ public:
 
     virtual void task() {}
 
+
     // events handler
+
     virtual void on_layer_change() {}
 
     virtual void on_mount() {}
@@ -84,4 +86,19 @@ public:
     virtual void on_suspend() {}
 
     virtual void on_resume() {}
+
+    virtual void on_report_receive(uint8_t const *buffer) {
+        // example from pico example
+        //            uint8_t const kbd_leds = buffer[0];
+        //
+        //            if (kbd_leds & KEYBOARD_LED_CAPSLOCK) {
+        //                // Capslock On: disable blink, turn led on
+        //                blink_interval_ms = 0;
+        //                board_led_write(true);
+        //            } else {
+        //                // Caplocks Off: back to normal blink
+        //                board_led_write(false);
+        //                blink_interval_ms = BLINK_MOUNTED;
+        //            }
+    }
 };

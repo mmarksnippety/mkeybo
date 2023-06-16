@@ -33,7 +33,7 @@ public:
                 switch_state.tap_dance_end = false;
             }
             // update switch state
-            auto released_interval = switch_state.released * keyboard_settings_->refresh_interval_ms;
+            auto released_interval = switch_state.released * keyboard_settings_->keyboard_refresh_interval_ms;
             if (switch_pressed) {
                 // key pressed after released, check tap dance interval is not too long
                 if (switch_state.pressed == 0 & switch_state.released > 0) {

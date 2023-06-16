@@ -17,7 +17,7 @@ using namespace std;
 
 class KeyboardSettings {
 public:
-    uint16_t refresh_interval_ms;
+    uint16_t keyboard_refresh_interval_ms;
     uint16_t usb_refresh_interval_ms;
     uint16_t switch_pressed_duration_ms;
     uint16_t switch_tap_interval_ms;
@@ -31,7 +31,7 @@ public:
         uint16_t switch_pressed_duration_ms,
         uint16_t switch_tap_interval_ms,
         uint16_t switch_hold_duration_ms)
-        : refresh_interval_ms(refresh_interval_ms), usb_refresh_interval_ms(usb_refresh_interval_ms),
+        : keyboard_refresh_interval_ms(refresh_interval_ms), usb_refresh_interval_ms(usb_refresh_interval_ms),
           switch_pressed_duration_ms(switch_pressed_duration_ms),
           switch_tap_interval_ms(switch_tap_interval_ms), switch_hold_duration_ms(switch_hold_duration_ms) {
         switch_pressed_duration_cycles = switch_pressed_duration_ms / refresh_interval_ms;

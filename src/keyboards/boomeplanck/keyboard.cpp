@@ -21,12 +21,15 @@ struct repeating_timer keyboard_task_timer {};
 struct repeating_timer hid_task_timer {};
 
 
+// Every keyboard->settings()->keyboard_refresh_interval_ms (efault 50ms),
+// we will refresh switches state, make mapping and generate hid reports
 bool keyboard_task(repeating_timer *t) {
     keyboard->refresh();
     return true;
 }
 
-
+// Send hid report
+// if for given report_id no report, then we will try to send report with next id
 void send_hid_report(uint8_t report_id) {
     if (!tud_hid_ready()) {
         return;
@@ -42,7 +45,7 @@ void send_hid_report(uint8_t report_id) {
             }
         }
     }
-    report_id = REPORT_ID_CONSUMER_CONTROL;  // move forward if no report
+    report_id = REPORT_ID_CONSUMER_CONTROL;// move forward if no report
     if (report_id == REPORT_ID_CONSUMER_CONTROL) {
         auto reporter = reinterpret_cast<HIDCCReporter<SWITCH_MATRIX_SWITCHES_COUNT> *>(
             keyboard->get_hid_reporter(KCT_CC_KEY));
@@ -54,10 +57,12 @@ void send_hid_report(uint8_t report_id) {
             }
         }
     }
+    // TODO: make other reporter - mouse, gamepad
 }
 
 
-// Every 10ms, we will sent 1 report for each HID profile (keyboard, mouse etc ..)
+// Every keyboard->settings()->usb_refresh_interval_ms (efault 10ms),
+// we will send 1 report for each HID profile (keyboard, mouse etc ..)
 // tud_hid_report_complete_cb() is used to send the next report after previous one is complete
 bool hid_task(repeating_timer *t) {
     bool report_to_send = keyboard->is_any_hid_raport_to_send();
@@ -86,7 +91,7 @@ int main() {
     tusb_init();
     cout << "Init tasks" << endl;
     add_repeating_timer_ms(
-        keyboard->settings()->refresh_interval_ms, keyboard_task, nullptr, &keyboard_task_timer);
+        keyboard->settings()->keyboard_refresh_interval_ms, keyboard_task, nullptr, &keyboard_task_timer);
     add_repeating_timer_ms(
         keyboard->settings()->usb_refresh_interval_ms, hid_task, nullptr, &hid_task_timer);
     cout << "Start main loop" << endl;
@@ -130,7 +135,6 @@ void tud_resume_cb(void) { keyboard->on_resume(); }
 void tud_hid_report_complete_cb(uint8_t instance, uint8_t const *report, uint8_t len) {
     (void)instance;
     (void)len;
-    cout << "tud_hid_report_complete_cb" << endl;
     uint8_t next_report_id = report[0] + 1;
     if (next_report_id < REPORT_ID_COUNT) {
         send_hid_report(next_report_id);
@@ -165,18 +169,7 @@ void tud_hid_set_report_cb(
         if (report_id == REPORT_ID_KEYBOARD) {
             // bufsize should be (at least) 1
             if (bufsize < 1) return;
-
-            //            uint8_t const kbd_leds = buffer[0];
-            //
-            //            if (kbd_leds & KEYBOARD_LED_CAPSLOCK) {
-            //                // Capslock On: disable blink, turn led on
-            //                blink_interval_ms = 0;
-            //                board_led_write(true);
-            //            } else {
-            //                // Caplocks Off: back to normal blink
-            //                board_led_write(false);
-            //                blink_interval_ms = BLINK_MOUNTED;
-            //            }
+            keyboard->on_report_receive(buffer);
         }
     }
 }
