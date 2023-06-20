@@ -6,12 +6,14 @@
 #include <string>
 #include <vector>
 
+#include "components/CircularBuffer.h"
 #include "components/KeyboardConfig.h"
 #include "components/KeyboardState.h"
 #include "keyboards/boomeplanck/config.h"
 
 
 using namespace std;
+
 
 class HIDReport {};
 
@@ -35,7 +37,7 @@ public:
 template <uint8_t switches_count>
 class HIDReporter {
 public:
-    KeycodeType const keycode_type;
+    KeycodeType keycode_type;
 
 protected:
     KeyboardState<switches_count> *keyboard_state_;
@@ -44,9 +46,11 @@ protected:
 
 public:
     explicit HIDReporter(KeyboardState<switches_count> *keyboard_state, KeycodeType keycode_type)
-        : keyboard_state_(keyboard_state), keycode_type(keycode_type) {}
+        : keyboard_state_(keyboard_state),  keycode_type(keycode_type) {}
 
     void init() { critical_section_init(&send_report_lock_); }
+
+    void run() { blocking_enqueue_report(); }
 
     bool is_report_to_send() { return !report_buffer_.empty(); }
 

@@ -42,6 +42,15 @@ map<uint8_t, uint8_t> MODIFIER_KEYCODE_TO_BIT = {
 
 
 /**
+ * Internal keycodes
+ */
+
+#define INTERNAL_KEY_REBOOT         1
+// some backlights action? other configuration...
+
+
+
+/**
  * Configuration structs and class
  */
 
@@ -52,6 +61,7 @@ enum KeycodeType {
     //     mouse_t,
     //     gamepad_t,
     //     internal_t,
+    KCT_INTERNAL,
     KCT_COUNT
 };
 
@@ -71,6 +81,7 @@ enum RuleConfigType {
 enum RuleConfigId {
     RID_KEY = 1,
     RID_MS_KEY,
+    RID_TD,
 };
 
 class RuleConfig {
@@ -137,17 +148,40 @@ public:
 };
 
 
-// class RuleConfigTapDance: public RuleConfig {
-// public:
-//     const uint8_t switch_no;
-//     const vector<pair<KeycodeType, uint16_t>> keycode;
-// };
+class RuleConfigTapDanceKey : public RuleConfig {
+    using RuleConfig::type;
+
+public:
+    const uint8_t switch_no;
+    const map<uint8_t, Keycode> keycode;
+
+    // keycodes.rbegin()->first <-- tak pobieramy najwyższy tapdance :D
+
+    RuleConfigTapDanceKey(uint8_t switch_no, const map<uint8_t, Keycode> &keycode)
+        : RuleConfig(RID_TD), switch_no(switch_no), keycode(keycode) {
+        bool rct_key = false;
+        bool rct_layer = false;
+        for (const auto &[td_count, kc] : keycode) {
+            rct_key = rct_key || kc.type != KCT_LAYER_CHANGE;
+            rct_layer = rct_layer || kc.type == KCT_LAYER_CHANGE;
+        }
+        if (rct_key && rct_layer) {
+            type = RCT_MIX;
+        } else if (rct_key) {
+            type = RCT_KEY;
+        } else {
+            type = RCT_LAYER;
+        }
+    }
+};
+
 
 // clang-format off
 // rules definitions
 // rules
 #define R(SW, KC) new RuleConfigKey(SW, KC)
 #define R2(SW_0, SW_1, KC) new RuleConfigMultiSwitchKey({SW_0, SW_1}, KC)
+//#define R_TD(SW, KC_MAP) new RuleConfigTapDanceKey(SW, KC_MAP)
 // standard hid keycodes
 #define K(KC) Keycode { .code = KC, .type = KCT_KEY }
 #define M_(MC, KC) ((static_cast<uint16_t>(MC) << 8) | KC)
@@ -163,4 +197,6 @@ public:
 #define KCC(KC) Keycode { .code = KC, .type = KCT_CC_KEY }
 // layer change keycode
 #define L(KC)  Keycode { .code = KC, .type = KCT_LAYER_CHANGE }
+// Internal key
+#define KI(KC) Keycode { .code = KC, .type = KCT_INTERNAL }
 // clang-format on

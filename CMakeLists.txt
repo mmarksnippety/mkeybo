@@ -59,6 +59,7 @@ pico_enable_stdio_usb(boomeplanck 0)
 target_link_libraries(boomeplanck
         pico_stdlib
         pico_unique_id
+        pico_bootrom
         hardware_pio
         hardware_pwm
         tinyusb_device

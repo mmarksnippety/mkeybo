@@ -18,12 +18,16 @@ template <uint8_t switches_count>
 class MapperRule {
 public:
     const RuleConfigId rule_id;
+
 protected:
     KeyboardSettings const *keyboard_settings_;
     KeyboardState<switches_count> *keyboard_state_;
 
 public:
-    MapperRule(RuleConfigId const rule_id, KeyboardSettings const *keyboard_settings, KeyboardState<switches_count> *keyboard_state)
+    MapperRule(
+        RuleConfigId const rule_id,
+        KeyboardSettings const *keyboard_settings,
+        KeyboardState<switches_count> *keyboard_state)
         : rule_id(rule_id), keyboard_settings_(keyboard_settings), keyboard_state_(keyboard_state) {}
 
     virtual bool match_key_mapping(RuleConfig *rule_config) { return false; }
@@ -52,7 +56,8 @@ public:
                 keyboard_state_->emplace_keycode(keycode.type, keycode.code);
             }
             //
-//            cout << "Emplace keycode: " << to_string(keycode.type) << "|" << to_string(keycode.code) << endl;
+            //            cout << "Emplace keycode: " << to_string(keycode.type) << "|" <<
+            //            to_string(keycode.code) << endl;
             //
 
             return true;
@@ -192,6 +197,58 @@ public:
         }
         return false;
     }
+};
+
+
+// Tap dance is different from "classic" mapping, we must wait some tap dance interval,
+// and emit keycode when key switch is of yet.
+// The consequence of this fact is that we must always check this rule, even when the switch is inactive.
+template <uint8_t switches_count>
+class MapperRuleTapDanceKey : public MapperRule<switches_count> {
+    using MapperRule<switches_count>::keyboard_state_;
+    using MapperRule<switches_count>::keyboard_settings_;
+    using MapperRule<switches_count>::emplace_keycode;
+    using MapperRule<switches_count>::activate_layer;
+
+public:
+    MapperRuleTapDanceKey(
+        KeyboardSettings const *keyboard_settings, KeyboardState<switches_count> *keyboard_state)
+        : MapperRule<switches_count>(RID_TD, keyboard_settings, keyboard_state) {}
+
+    bool match_key_mapping(RuleConfig *rule_config) override {
+        auto config = reinterpret_cast<RuleConfigKey *>(rule_config);
+        return config->is_key_rule() && !keyboard_state_->is_switch_mapped(config->switch_no) &&
+               keyboard_state_->is_tap_dance_end(config->switch_no);
+    }
+
+    bool make_key_mapping(RuleConfig *rule_config) override {
+        //        auto config = reinterpret_cast<RuleConfigKey *>(rule_config);
+        //        auto td_end = keyboard_state_->is_tap_dance_end(config->switch_no);
+        //        cout << to_string(td_end) << "|" << to_string(td_count) << endl;
+        auto config = reinterpret_cast<RuleConfigTapDanceKey *>(rule_config);
+        auto td_count = keyboard_state_->get_tap_dance_count(config->switch_no);
+        if (config->keycode.contains(td_count)) {
+            if (emplace_keycode(config->keycode.at(td_count))) {
+                keyboard_state_->mark_switch_mapped(config->switch_no);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    //    bool match_layer_mapping(RuleConfig *rule_config) override {
+    //        auto config = reinterpret_cast<RuleConfigKey *>(rule_config);
+    //        return config->is_layer_rule() && !keyboard_state_->is_switch_mapped(config->switch_no);
+    //    }
+    //
+    //    bool make_layer_mapping(RuleConfig *rule_config) override {
+    //        auto config = reinterpret_cast<RuleConfigKey *>(rule_config);
+    //        if (activate_layer(config->keycode)) {
+    //            keyboard_state_->mark_switch_mapped(config->switch_no);
+    //            return true;
+    //        }
+    //        return false;
+    //    }
 };
 
 

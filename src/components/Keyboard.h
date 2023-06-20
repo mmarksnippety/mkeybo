@@ -2,8 +2,10 @@
 
 #include <iostream>
 
+#include "pico/bootrom.h"
+
 #include "CircularBuffer.h"
-#include "HIDRaporter.h"
+#include "HIDReporter.h"
 #include "KeyboardConfig.h"
 #include "KeyboardMapper.h"
 #include "KeyboardState.h"
@@ -70,10 +72,22 @@ public:
         for (auto const &[keycode_type, reporter] : reporters_) {
             reporter->blocking_enqueue_report();
         }
+        internal_keycodes_actions();
     }
 
     virtual void task() {}
 
+    //
+
+    void internal_keycodes_actions() {
+        for (auto &keycode : keyboard_state_->keycodes[KCT_INTERNAL]) {
+            printf("Internal keycode!");
+            if (keycode == INTERNAL_KEY_REBOOT) {
+                // huu robimy reboot!
+                 reset_usb_boot(0, 0);
+            }
+        }
+    }
 
     // events handler
 

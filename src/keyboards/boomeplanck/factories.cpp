@@ -4,7 +4,7 @@
 #include "mapping.h"
 
 
-KeyboardSettings *keyboard_settings_factory() { return new KeyboardSettings(50, 10, 50, 150, 300); }
+KeyboardSettings *keyboard_settings_factory() { return new KeyboardSettings(50, 10, 50, 100, 300); }
 
 
 Mapper<SWITCH_MATRIX_SWITCHES_COUNT> *mapper_factory(
@@ -18,7 +18,8 @@ Mapper<SWITCH_MATRIX_SWITCHES_COUNT> *mapper_factory(
         keyboard_state,
         {
             new MapperRuleKey<SWITCH_MATRIX_SWITCHES_COUNT>(keyboard_settings, keyboard_state),
-            new MapperRuleMultiSwitchKey<SWITCH_MATRIX_SWITCHES_COUNT>(keyboard_settings, keyboard_state)
+            new MapperRuleMultiSwitchKey<SWITCH_MATRIX_SWITCHES_COUNT>(keyboard_settings, keyboard_state),
+//            new MapperRuleTapDanceKey<SWITCH_MATRIX_SWITCHES_COUNT>(keyboard_settings, keyboard_state),
         }
     );
     // clang-format on
@@ -47,7 +48,7 @@ BoomeplanckKeyboard<SWITCH_MATRIX_SWITCHES_COUNT> *keyboard_factory() {
         switch_state_updater,
         mapper,
         {new HIDKeyReporter<SWITCH_MATRIX_SWITCHES_COUNT>(keyboard_state),
-         new HIDCCReporter<SWITCH_MATRIX_SWITCHES_COUNT>(keyboard_state)},
+         new HIDCCReporter<SWITCH_MATRIX_SWITCHES_COUNT>(keyboard_state),},
         right_led,
         left_led);
 }

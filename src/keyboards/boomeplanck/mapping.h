@@ -17,7 +17,12 @@ MapperConfig *mapper_config_factory() {
             R(16, K(HID_KEY_F)), R(17, K(HID_KEY_G)), R(18, K(HID_KEY_H)), R(19, K(HID_KEY_J)),
             R(20, K(HID_KEY_K)), R(21, K(HID_KEY_L)), R(22, K(HID_KEY_SEMICOLON)), R(23, K(HID_KEY_APOSTROPHE)),
             // R2, 24 ~ 35
-            R(24, K(HID_KEY_SHIFT_LEFT)), R(25, K(HID_KEY_Z)), R(26, K(HID_KEY_X)), R(27, K(HID_KEY_C)),
+            R(24, K(HID_KEY_SHIFT_LEFT)),
+
+//            new RuleConfigTapDanceKey(25, {{1, K(HID_KEY_Z)}, {2, K(M_RALT(HID_KEY_Z))}} ),
+            R(25,  K(HID_KEY_Z)),
+
+            R(26, K(HID_KEY_X)), R(27, K(HID_KEY_C)),
             R(28, K(HID_KEY_V)), R(29, K(HID_KEY_B)), R(30, K(HID_KEY_N)), R(31, K(HID_KEY_M)),
             R(32, K(HID_KEY_COMMA)), R(33, K(HID_KEY_PERIOD)), R(34, K(HID_KEY_SLASH)), R(35, K(HID_KEY_ENTER)),
             // R3, 36 ~ 47
@@ -54,14 +59,17 @@ MapperConfig *mapper_config_factory() {
             // 36 ~ 47
         }),
         new LayerConfig(3, false, true, {
+            // 12 - 23
+            R(12, KI(INTERNAL_KEY_REBOOT)),
             R(19, KCC(HID_USAGE_CONSUMER_BRIGHTNESS_DECREMENT)), R(20, KCC(HID_USAGE_CONSUMER_BRIGHTNESS_INCREMENT)),
             // 24 ~ 35
             R(31, KCC(HID_USAGE_CONSUMER_MUTE)),
             // 36 ~ 47
-            R(44, KCC(HID_USAGE_CONSUMER_AC_BACK)), R(45, KCC(HID_USAGE_CONSUMER_VOLUME_DECREMENT)),
-            R(46, KCC(HID_USAGE_CONSUMER_VOLUME_INCREMENT)), R(47, KCC(HID_USAGE_CONSUMER_AC_FORWARD))
+            R(44, KCC(HID_USAGE_CONSUMER_SCAN_PREVIOUS)), R(45, KCC(HID_USAGE_CONSUMER_VOLUME_DECREMENT)),
+            R(46, KCC(HID_USAGE_CONSUMER_VOLUME_INCREMENT)), R(47, KCC(HID_USAGE_CONSUMER_SCAN_NEXT))
         }),
         new LayerConfig(4, false, true, {
+            // 12 - 23
             // 36 ~ 47
             R(36, K(HID_KEY_CONTROL_RIGHT)), R(38, K(HID_KEY_APPLICATION)), R(39, K(HID_KEY_ALT_RIGHT)),
             R(41, K(HID_KEY_BACKSPACE)), R(42, K(HID_KEY_DELETE)),
