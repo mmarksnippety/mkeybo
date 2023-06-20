@@ -61,6 +61,7 @@ enum KeycodeType {
     //     mouse_t,
     //     gamepad_t,
     //     internal_t,
+    KCT_MACRO,
     KCT_INTERNAL,
     KCT_COUNT
 };

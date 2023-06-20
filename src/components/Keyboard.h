@@ -2,8 +2,7 @@
 
 #include <iostream>
 
-#include "pico/bootrom.h"
-
+#include "Actions.h"
 #include "CircularBuffer.h"
 #include "HIDReporter.h"
 #include "KeyboardConfig.h"
@@ -22,6 +21,7 @@ protected:
     SwitchStateUpdater<switches_count> *switch_state_updater_;
     Mapper<switches_count> *mapper_;
     map<KeycodeType, HIDReporter<switches_count> *> reporters_;
+    map<KeycodeType, Action<switches_count> *> actions_;
 
 public:
     Keyboard(
@@ -30,11 +30,15 @@ public:
         SwitchReader<switches_count> *switch_reader,
         SwitchStateUpdater<switches_count> *switch_state_updater,
         Mapper<switches_count> *mapper,
-        vector<HIDReporter<switches_count> *> reporters)
+        vector<HIDReporter<switches_count> *> reporters,
+        vector<Action<switches_count> *> actions)
         : keyboard_settings_(keyboard_settings), keyboard_state_(keyboard_state),
           switch_reader_(switch_reader), switch_state_updater_(switch_state_updater), mapper_(mapper) {
         for (const auto &reporter : reporters) {
             reporters_[reporter->keycode_type] = reporter;
+        }
+        for (const auto &action : actions) {
+            actions_[action->keycode_type] = action;
         }
     }
 
@@ -42,6 +46,9 @@ public:
         switch_reader_->init();
         for (const auto &[keycode_type, reporter] : reporters_) {
             reporter->init();
+        }
+        for (const auto &[keycode_type, action] : actions_) {
+            action->init();
         }
     }
 
@@ -69,23 +76,23 @@ public:
         mapper_->make_layer_mapping();
         on_layer_change();
         mapper_->make_mapping();
-        for (auto const &[keycode_type, reporter] : reporters_) {
-            reporter->blocking_enqueue_report();
-        }
-        internal_keycodes_actions();
+        generate_hid_reports();
+        // actions: internal, macros, ...
+        do_actions();
     }
 
     virtual void task() {}
 
     //
+    void generate_hid_reports() {
+        for (auto const &[keycode_type, reporter] : reporters_) {
+            reporter->blocking_enqueue_report();
+        }
+    }
 
-    void internal_keycodes_actions() {
-        for (auto &keycode : keyboard_state_->keycodes[KCT_INTERNAL]) {
-            printf("Internal keycode!");
-            if (keycode == INTERNAL_KEY_REBOOT) {
-                // huu robimy reboot!
-                 reset_usb_boot(0, 0);
-            }
+    void do_actions() {
+        for (const auto &[keycode_type, action] : actions_) {
+            action->run();
         }
     }
 

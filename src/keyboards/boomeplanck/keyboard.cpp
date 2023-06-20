@@ -16,7 +16,7 @@ char const *string_desc_arr[] = {
     KEYBOARD_MODEL,            // 2: Product
     "0"                        // 3: Pico board id, load in runtime
 };
-Keyboard<SWITCH_MATRIX_SWITCHES_COUNT> *keyboard;
+Keyboard<SWITCHES_COUNT> *keyboard;
 struct repeating_timer keyboard_task_timer {};
 struct repeating_timer hid_task_timer {};
 
@@ -35,7 +35,7 @@ void send_hid_report(uint8_t report_id) {
         return;
     }
     if (report_id == REPORT_ID_KEYBOARD) {
-        auto reporter = reinterpret_cast<HIDKeyReporter<SWITCH_MATRIX_SWITCHES_COUNT> *>(
+        auto reporter = reinterpret_cast<HIDKeyReporter<SWITCHES_COUNT> *>(
             keyboard->get_hid_reporter(KCT_KEY));
         if (reporter->is_report_to_send()) {
             auto report = reinterpret_cast<HIDKeyReport *>(reporter->blocking_dequeue_report());
@@ -47,7 +47,7 @@ void send_hid_report(uint8_t report_id) {
     }
     report_id = REPORT_ID_CONSUMER_CONTROL;// move forward if no report
     if (report_id == REPORT_ID_CONSUMER_CONTROL) {
-        auto reporter = reinterpret_cast<HIDCCReporter<SWITCH_MATRIX_SWITCHES_COUNT> *>(
+        auto reporter = reinterpret_cast<HIDCCReporter<SWITCHES_COUNT> *>(
             keyboard->get_hid_reporter(KCT_CC_KEY));
         if (reporter->is_report_to_send()) {
             auto report = reinterpret_cast<HIDCCReport *>(reporter->blocking_dequeue_report());
@@ -85,7 +85,7 @@ int main() {
     stdio_init_all();
     board_init();
     cout << "Construct keyboard instance" << endl;
-    keyboard = keyboard_factory();
+    keyboard = keyboard_factory<SWITCHES_COUNT>();
     keyboard->init();
     cout << "Init USB subsystem" << endl;
     tusb_init();
