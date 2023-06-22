@@ -42,22 +42,22 @@ public:
         if (keycode.code > 0) {
             if (keycode.type == KCT_KEY && keycode.code > numeric_limits<uint8_t>::max()) {
                 // base keycode
-                keyboard_state_->emplace_keycode(keycode.type, static_cast<uint8_t>(keycode.code));
+                keyboard_state_->emplace_keycode(Keycode{static_cast<uint8_t>(keycode.code), keycode.type});
                 // modifiers
                 auto modifier_bits = static_cast<uint8_t>(keycode.code >> 8);
                 uint8_t modifier_mask = 1;
                 for (auto &kc : MODIFIER_BIT_TO_KEYCODE) {
                     if (modifier_bits & modifier_mask) {
-                        keyboard_state_->emplace_keycode(keycode.type, kc);
+                        keyboard_state_->emplace_keycode(Keycode{kc, keycode.type});
                     }
                     modifier_mask <<= 1;
                 }
             } else {
-                keyboard_state_->emplace_keycode(keycode.type, keycode.code);
+                keyboard_state_->emplace_keycode(keycode);
             }
             //
-            //            cout << "Emplace keycode: " << to_string(keycode.type) << "|" <<
-            //            to_string(keycode.code) << endl;
+//                        cout << "Emplace keycode: " << to_string(keycode.type) << "|" <<
+//                        to_string(keycode.code) << endl;
             //
 
             return true;

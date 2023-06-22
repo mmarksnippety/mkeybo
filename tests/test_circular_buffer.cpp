@@ -3,6 +3,20 @@
 
 #include "components/CircularBuffer.h"
 
+void test_circular_buffer__empty() {
+    CircularBuffer<uint8_t, 5> buffer;
+   cout << "CircularBuffer, test empty" << endl;
+   assert(buffer.empty());
+
+   uint8_t el = 11;
+   buffer.add_element(el);
+   assert(!buffer.empty());
+
+   buffer.remove_element(el);
+   assert(buffer.empty());
+   cout << "ok" << endl;
+}
+
 
 void test_circular_buffer() {
     CircularBuffer<uint8_t, 5> buffer;
