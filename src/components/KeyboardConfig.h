@@ -45,9 +45,8 @@ map<uint8_t, uint8_t> MODIFIER_KEYCODE_TO_BIT = {
  * Internal keycodes
  */
 
-#define INTERNAL_KEY_REBOOT         1
+#define INTERNAL_KEY_REBOOT 1
 // some backlights action? other configuration...
-
 
 
 /**
@@ -84,6 +83,7 @@ enum RuleConfigId {
     RID_MS_KEY,
     RID_TD,
 };
+
 
 class RuleConfig {
 public:

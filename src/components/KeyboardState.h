@@ -31,7 +31,8 @@ public:
         uint16_t switch_pressed_duration_ms,
         uint16_t switch_tap_interval_ms,
         uint16_t switch_hold_duration_ms)
-        : keyboard_refresh_interval_ms(refresh_interval_ms), usb_refresh_interval_ms(usb_refresh_interval_ms),
+        : keyboard_refresh_interval_ms(refresh_interval_ms),
+          usb_refresh_interval_ms(usb_refresh_interval_ms),
           switch_pressed_duration_ms(switch_pressed_duration_ms),
           switch_tap_interval_ms(switch_tap_interval_ms), switch_hold_duration_ms(switch_hold_duration_ms) {
         switch_pressed_duration_cycles = switch_pressed_duration_ms / refresh_interval_ms;
@@ -84,29 +85,26 @@ public:
     bitset<switches_count> mapped_switches{};    // that switches are mapped in this cycle
 
     // current and prev cycle keycodes
-    array<vector<uint16_t>, KCT_COUNT> keycodes;
-    array<vector<uint16_t>, KCT_COUNT> prev_keycodes;
+    array<Keycode, 200> keycodes{};
+    array<Keycode, 200> prev_keycodes{};
+    size_t keycodes_index = 0;
+    size_t prev_keycodes_index = 0;
+    bool keycodes_ready = false;
 
     KeyboardState() {
         fill(begin(switches_state), end(switches_state), SwitchState{});
-        for (int keycode_type = KCT_KEY; keycode_type != KCT_COUNT; keycode_type++) {
-            keycodes[keycode_type] = vector<uint16_t>{};
-            prev_keycodes[keycode_type] = vector<uint16_t>{};
-        }
+        fill(begin(keycodes), end(keycodes), Keycode{0, KCT_KEY});
+        fill(begin(prev_keycodes), end(prev_keycodes), Keycode{0, KCT_KEY});
     }
 
     // reset state
     void reset() {
         switches_read_state.reset();
         mapped_switches.reset();
-        // move current keycodes to prev keycodes, reset current keycodes
-        for (int keycode_type = KCT_KEY; keycode_type != KCT_COUNT; keycode_type++) {
-            prev_keycodes[keycode_type].clear();
-            for (auto &keycode : keycodes[keycode_type]) {
-                prev_keycodes[keycode_type].emplace_back(keycode);
-            }
-            keycodes[keycode_type].clear();
-        }
+        prev_keycodes = keycodes;
+        prev_keycodes_index = keycodes_index;
+        fill(begin(keycodes), end(keycodes), Keycode{0, KCT_KEY});
+        keycodes_index = 0;
     }
 
     // layers
@@ -134,17 +132,56 @@ public:
         return switches_state[switch_no].tap_dance_count > 0;
     }
 
-    bool is_tap_dance_end(uint8_t switch_no) {
-        return switches_state[switch_no].tap_dance_end;
-    }
+    bool is_tap_dance_end(uint8_t switch_no) { return switches_state[switch_no].tap_dance_end; }
 
-    uint8_t get_tap_dance_count(uint8_t switch_no) {
-        return switches_state[switch_no].tap_dance_count;
-    }
+    uint8_t get_tap_dance_count(uint8_t switch_no) { return switches_state[switch_no].tap_dance_count; }
 
     // keycodes
 
-    void emplace_keycode(KeycodeType const &keycode_type, uint16_t const &keycode) {
-        keycodes[keycode_type].emplace_back(keycode);
+    bool emplace_keycode(Keycode const &keycode) {
+        if (keycodes_index == keycodes.size()) {
+            return false;
+        }
+        keycodes[keycodes_index] = keycode;
+        keycodes_index++;
+        return true;
+    }
+
+    bool are_keycodes_changed(KeycodeType const &keycode_type) {
+        if (keycodes_index == 0 && prev_keycodes_index == 0) {
+            return false;
+        }
+        size_t index = 0;
+        size_t prev_index = 0;
+        while ((index <= keycodes_index) && (prev_index <= prev_keycodes_index)) {
+            if (keycodes_index > 0 && keycodes[index].type != keycode_type) {
+                ++index;
+                continue;
+            }
+            if (prev_keycodes_index > 0 && prev_keycodes[prev_index].type != keycode_type) {
+                ++prev_index;
+                continue;
+            }
+            if (keycodes_index > 0 && prev_keycodes_index > 0) {
+                if (keycodes[index].code != prev_keycodes[prev_index].code) {
+                    return true;
+                }
+            } else {
+                return true;
+            }
+            ++index;
+            ++prev_index;
+        }
+        return false;
+    }
+
+    auto get_keycodes(KeycodeType const &keycode_type) {
+        std::vector<uint16_t> out_keycodes;
+        for (auto index = 0; index < keycodes_index; ++index) {
+            if (keycodes[index].type == keycode_type) {
+                out_keycodes.emplace_back(keycodes[index].code);
+            }
+        }
+        return out_keycodes;
     }
 };

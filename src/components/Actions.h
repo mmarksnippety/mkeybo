@@ -38,8 +38,7 @@ public:
         : Action<switches_count>(keyboard_state, KCT_INTERNAL) {}
 
     void run() override {
-        for (auto &keycode : keyboard_state_->keycodes[keycode_type]) {
-            printf("Internal keycode!");
+        for (auto &keycode : keyboard_state_->get_keycodes(keycode_type)) {
             if (keycode == INTERNAL_KEY_REBOOT) {
                 // huu robimy reboot!
                 reset_usb_boot(0, 0);
@@ -59,7 +58,7 @@ public:
         : Action<switches_count>(keyboard_state, KCT_MACRO) {}
 
     void run() override {
-        for (auto &keycode : keyboard_state_->keycodes[keycode_type]) {
+        for (auto &keycode : keyboard_state_->get_keycodes(keycode_type)) {
             // TODO make macro!
         }
     }

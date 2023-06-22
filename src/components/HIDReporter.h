@@ -46,7 +46,7 @@ protected:
 
 public:
     explicit HIDReporter(KeyboardState<switches_count> *keyboard_state, KeycodeType keycode_type)
-        : keyboard_state_(keyboard_state),  keycode_type(keycode_type) {}
+        : keyboard_state_(keyboard_state), keycode_type(keycode_type) {}
 
     void init() { critical_section_init(&send_report_lock_); }
 
@@ -54,9 +54,7 @@ public:
 
     bool is_report_to_send() { return !report_buffer_.empty(); }
 
-    virtual bool is_report_to_generate() {
-        return keyboard_state_->keycodes[keycode_type] != keyboard_state_->prev_keycodes[keycode_type];
-    }
+    virtual bool is_report_to_generate() { return keyboard_state_->are_keycodes_changed(keycode_type); }
 
     HIDReport *blocking_dequeue_report() {
         HIDReport *report = nullptr;
@@ -99,7 +97,7 @@ public:
     HIDKeyReport *generate_report() {
         uint8_t modifier = 0;
         vector<uint8_t> keycodes{};
-        for (auto &keycode : keyboard_state_->keycodes[keycode_type]) {
+        for (auto &keycode : keyboard_state_->get_keycodes(keycode_type)) {
             if (keycode >= HID_KEY_CONTROL_LEFT) {
                 modifier = modifier | MODIFIER_KEYCODE_TO_BIT[static_cast<uint8_t>(keycode)];
             } else {
@@ -135,9 +133,10 @@ public:
         : HIDReporter<switches_count>(keyboard_state, KCT_CC_KEY) {}
 
     HIDCCReport *generate_report() {
-        if (keyboard_state_->keycodes[keycode_type].empty()) {
+        auto keycodes = keyboard_state_->get_keycodes(keycode_type);
+        if (keycodes.empty()) {
             return new HIDCCReport(0);
         }
-        return new HIDCCReport(keyboard_state_->keycodes[keycode_type].front());
+        return new HIDCCReport(keycodes.front());
     }
 };
