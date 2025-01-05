@@ -1,0 +1,58 @@
+{
+  "name": "lwings",
+  "layers": [
+    {
+      "type": "layout",
+      "layouts": [
+        {
+          "name": "Qwerty",
+          "map": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        },
+        {
+          "name": "Dworak",
+          "map": [1, 12, 13, 14, 15, 16, 17, 18, 19, 10]
+        }
+      ]
+    },
+    {
+      "type": "layer",
+      "name": "functions",
+      "map": [0, 0, 101, 102, 103, 104, 0, 0, 0, 0]
+    },
+    {
+      "type": "layer",
+      "name": "media",
+      "map": [0, 0, 201, 202, 203, 204, 0, 0, 0, 0]
+    }
+  ],
+  "rules": [
+    {
+      "type": "mapping"
+    },
+    {
+      "type": "change_layer",
+      "keys": [1],
+      "layer": 1
+    },
+    {
+      "type": "change_layer",
+      "keys": [10],
+      "layer": 2
+    },
+    {
+      "type": "tab_dance",
+      "key": 2,
+      "dance": [
+        {
+          "count": 2,
+          "key": 44
+        },
+        {
+          "count": 3,
+          "key": 55
+        }
+      ],
+      "hold": 33
+    }
+  ]
+}
