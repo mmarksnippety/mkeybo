@@ -2,49 +2,94 @@
 
 #include <cstdint>
 #include <limits>
-#include "KeyboardConfig.hpp"
+#include "base.hpp"
+#include "KeyboardSettings.hpp"
 #include "KeyboardState.hpp"
 
 
 namespace mkeybo {
 
-
-template <uint8_t switches_count>
-class SwitchEventsGenerator {
+template <size_t switches_count>
+class SwitchEventsGenerator
+{
 public:
     SwitchEventsGenerator() = default;
     ~SwitchEventsGenerator() = default;
 
-    void reset_state(KeyboardConfig* keyboard_config, KeyboardState<switches_count>* keyboard_state) {
-        for (uint8_t switch_no = 0; switch_no < switches_count; switch_no++) {
-            keyboard_state->switch_events[switch_no].event_type = SwitchEventType::idle;
+    void update(const KeyboardSettings<switches_count>* keyboard_settings,
+                KeyboardState<switches_count>* keyboard_state)
+    {
+        for (size_t switch_no = 0; switch_no < switches_count; switch_no++)
+        {
+            const bool pressed = keyboard_state->switch_state[switch_no];
+            auto& event = keyboard_state->switch_events[switch_no];
+            update_switch_event(keyboard_settings, pressed, event);
         }
     }
 
-    void update_events(KeyboardConfig* keyboard_config, KeyboardState<switches_count>* keyboard_state) {
-        for (uint8_t switch_no = 0; switch_no < switches_count; switch_no++) {
-            update_event(switch_no, keyboard_config, keyboard_state);
+    void update_switch_event(const KeyboardSettings<switches_count>* keyboard_settings, const bool pressed,
+                             SwitchEvent& event)
+    {
+        // pressed, pressed not always mean type pressed, we must check
+        if (pressed)
+        {
+            // counters update
+            if (event.released > 0)
+            {
+                event.event_type = SwitchEventType::idle;
+                event.pressed = 1;
+                event.released = 0;
+            }
+            else
+            {
+                if (event.pressed < std::numeric_limits<uint8_t>::max()) { ++event.pressed; }
+            }
+            // idle -> pressed, increase tap dance
+            if (event.event_type == SwitchEventType::idle && event.pressed >= keyboard_settings->
+                press_min_interval_cycles)
+            {
+                event.event_type = SwitchEventType::pressed;
+                ++event.tap_dance;
+                return;
+            }
+            // hold detect. this break tap_dance cycles
+            if (event.pressed >= keyboard_settings->hold_min_interval_cycles)
+            {
+                event.hold = true;
+                event.tap_dance = 0;
+            }
+        }
+        else
+        {
+            // change from pressed to released
+            if (event.pressed > 0)
+            {
+                event.event_type = SwitchEventType::released;
+                event.pressed = 0;
+                event.released = 1;
+                event.hold = false;
+                return;
+            }
+            // change to tap_dance_end or idle (after hold no tap_dance_end)
+            if (event.event_type == SwitchEventType::released and event.released >= keyboard_settings->
+                tap_dance_max_interval_cycles)
+            {
+                event.event_type = event.tap_dance > 0 ? SwitchEventType::tap_dance_end : SwitchEventType::idle;
+                event.released = 0;
+                return;
+            }
+            // back from tap_dance_end to idle
+            if (event.event_type == SwitchEventType::tap_dance_end)
+            {
+                event.event_type = SwitchEventType::idle;
+                event.tap_dance = 0;
+                return;
+            }
+            // oke just push the counter
+            if (event.released > 0 && event.released < std::numeric_limits<uint8_t>::max()) { ++event.released; }
         }
     }
-
-    // to musi być dobrze przetestowane!!!
-
-    void update_event(uint8_t switch_no, KeyboardConfig* keyboard_config, KeyboardState<switches_count>* keyboard_state) {
-        const bool pressed = keyboard_state->switches_state[switch_no];
-        auto& event = keyboard_state->switch_events[switch_no];
-        if (pressed) {
-            event.event_type = SwitchEventType::pressed;
-            if (event.event_type == SwitchEventType::idle) { event.released = 0; }
-            if (event.pressed < std::numeric_limits<uint8_t>::max()) { ++event.pressed; }
-        } else {
-            keyboard_state->switch_events[switch_no].event_type = SwitchEventType::released;
-            if (event.event_type == SwitchEventType::idle) { event.pressed = 0; }
-            if (event.released < std::numeric_limits<uint8_t>::max()) { ++event.released; }
-        }
-    }
-
 };
 
 
 }
-

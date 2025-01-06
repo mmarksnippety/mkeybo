@@ -1,0 +1,6 @@
+#pragma once
+
+void test_tap_dance_mapping_rule_map_event_tap_dance_end();
+void test_tap_dance_mapping_rule_map_event_tap_dance_end_with_action();
+void test_tap_dance_mapping_rule_map_event_press_hold();
+void test_tap_dance_mapping_rule_map_event_press();
