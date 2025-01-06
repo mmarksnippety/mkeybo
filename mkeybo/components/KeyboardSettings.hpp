@@ -1,12 +1,21 @@
-#ifndef __mkeybo_keyboard_settings_hpp__
-#define __mkeybo_keyboard_settings_hpp__
+#pragma once
+
+#include <array>
+#include <cstdint>
+#include <map>
+#include <ranges>
+#include <string>
+#include <utility>
+#include <vector>
+#include "base.hpp"
+
+
+namespace mkeybo {
 
 /**
  * Json example settings
 
     json_settings = {
-      "keyboard_name": "My Keyboard",
-      "manufactured_name": "DIY",
       "default_layout": "qwerty",
       "layouts": [
         {
@@ -39,39 +48,78 @@
   JSON data like this must be parsed and instance settings object.
  */
 
-
-#include <string>
-#include <cstdint>
-#include <array>
-#include <vector>
-
-namespace mkeybo
+template <size_t switches_count>
+struct KeyboardSettingsLayer
 {
+    std::string name;
+    std::array<Keycode, switches_count> keycodes;
+};
 
-    template<size_t key_count>
-    struct Layer {
-        std::string name;
-        std::array<uint16_t, key_count> keycodes;
-    };
+struct KeyboardSettingsRule
+{
+};
 
-    struct Rule {
-        std::string type_name;
-        std::string json_config;
-        // pointer to rule instance?
-    };
+struct KeyboardSettingsTapDanceRuleConfig : KeyboardSettingsRule
+{
+    std::map<Keycode, std::map<uint8_t, Keycode>> actions;
+    explicit KeyboardSettingsTapDanceRuleConfig(const std::map<Keycode, std::map<uint8_t, Keycode>>& actions) :
+        actions{actions}
+    {
+    }
+};
 
-    template<size_t key_count>
-    struct Settings {
-        std::string keyboard_name;
-        std::string manufactured_name;
+template <size_t switches_count>
+struct KeyboardSettings
+{
+    std::string default_layout;
+    std::vector<KeyboardSettingsLayer<switches_count>*> layouts;
+    std::vector<KeyboardSettingsLayer<switches_count>*> layers;
+    std::map<std::string, KeyboardSettingsRule*> rules;
 
-        std::string default_layout;
-        std::vector<Layer<key_count>> layouts;
-        std::vector<Layer<key_count>> layers;
-        std::vector<Rule> rules;
-    };
+    uint16_t switches_refresh_interval_ms{50};
+    uint16_t press_min_interval_ms{50};
+    uint16_t tap_dance_max_interval_ms{150};
+    uint16_t hold_min_interval_ms{200};
 
+    uint16_t report_send_interval_ms{5};
+
+    uint8_t press_min_interval_cycles{};
+    uint8_t tap_dance_max_interval_cycles{};
+    uint8_t hold_min_interval_cycles{};
+
+    explicit KeyboardSettings(std::string default_layout_,
+                              const std::vector<KeyboardSettingsLayer<switches_count>*>& layouts_,
+                              const std::vector<KeyboardSettingsLayer<switches_count>*>& layers_,
+                              const std::map<std::string, KeyboardSettingsRule*>& rules_,
+                              const uint16_t switches_refresh_interval_ms_ = 50,
+                              const uint16_t press_min_interval_ms_ = 50,
+                              const uint16_t tap_dance_max_interval_ms_ = 100,
+                              const uint16_t hold_min_interval_ms_ = 250) :
+        default_layout(std::move(default_layout_)), layouts(layouts_), layers(layers_), rules(rules_),
+        switches_refresh_interval_ms(switches_refresh_interval_ms_), press_min_interval_ms(press_min_interval_ms_),
+        tap_dance_max_interval_ms(tap_dance_max_interval_ms_), hold_min_interval_ms(hold_min_interval_ms_)
+    {
+        press_min_interval_cycles = static_cast<uint8_t>(press_min_interval_ms / switches_refresh_interval_ms);
+        tap_dance_max_interval_cycles = static_cast<uint8_t>(tap_dance_max_interval_ms / switches_refresh_interval_ms);
+        hold_min_interval_cycles = static_cast<uint8_t>(hold_min_interval_ms / switches_refresh_interval_ms);
+    }
+
+    ~KeyboardSettings()
+    {
+        for (const auto& layout : layouts)
+        {
+            delete layout;
+        }
+        for (const auto& layer : layers)
+        {
+            delete layer;
+        }
+        for (const auto& rule : std::views::values(rules))
+        {
+            delete rule;
+        }
+    }
 };
 
 
-#endif //__mkeybo_keyboard_settings_hpp__
+} // namespace mkeybo
