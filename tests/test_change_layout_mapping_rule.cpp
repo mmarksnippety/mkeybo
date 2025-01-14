@@ -3,7 +3,7 @@
 #include <cassert>
 #include <iostream>
 #include <ranges>
-#include "mkeybo/components/KeyboardSettings.hpp"
+#include "mkeybo/components/keyboard_settings.hpp"
 #include "mkeybo/components/base.hpp"
 #include "../mkeybo/components/key_mapper.hpp"
 #include "mkeybo/factories.hpp"
@@ -26,8 +26,8 @@ void test_change_layout_mapping_rule_map()
     assert(k_state->get_active_layout() == 0);
     // layout 1 with some key pressed - cycle 1
     k_state->reset();
-    k_state->keycode_events_.push(H_K(2), 1, mkeybo::KeycodeEventType::finalized);
-    k_state->keycode_events_.push(LAYOUT_K(1), 0, mkeybo::KeycodeEventType::finalized);
+    k_state->push_keycode_event_draft(H_K(2), 1);
+    k_state->push_keycode_event_draft(LAYOUT_K(1), 0);
     result = k_rule->map(k_settings, k_state);
     assert(result == true); // cycle 2 is needed
     assert(k_state->get_active_layout() == 1);

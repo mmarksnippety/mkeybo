@@ -1,7 +1,7 @@
 #include <cassert>
 #include <iostream>
 #include "components/base.hpp"
-#include "components/KeyboardSettings.hpp"
+#include "components/keyboard_settings.hpp"
 #include "components/switch_events.hpp"
 #include "test_switch_events.hpp"
 
@@ -190,27 +190,29 @@ void test_update_switch_event_keyboard_state()
     mkeybo::KeyboardState<switches_count> keyboard_state;
     mkeybo::SwitchEventsGenerator<switches_count> generator;
     keyboard_state.reset(); // all switches in idle state
-    keyboard_state.switch_state[1] = true; // set sw_no = 1 pressed
-    assert(keyboard_state.switch_state[0] == false);
-    assert(keyboard_state.switch_state[1] == true);
-    assert(keyboard_state.switch_events_[0].type == mkeybo::SwitchEventType::idle);
-    assert(keyboard_state.switch_events_[1].type == mkeybo::SwitchEventType::idle);
+    auto& switch_state = keyboard_state.get_switch_state();
+    auto& switch_events = keyboard_state.get_switch_events();
+    switch_state[1] = true; // set sw_no = 1 pressed
+    assert(switch_state[0] == false);
+    assert(switch_state[1] == true);
+    assert(switch_events[0].type == mkeybo::SwitchEventType::idle);
+    assert(switch_events[1].type == mkeybo::SwitchEventType::idle);
     // cycle 1
     generator.update(k_settings, &keyboard_state);
-    assert(keyboard_state.switch_events_[0].type == mkeybo::SwitchEventType::idle);
-    assert(keyboard_state.switch_events_[0].pressed == 0);
-    assert(keyboard_state.switch_events_[0].released == 0);
-    assert(keyboard_state.switch_events_[1].type == mkeybo::SwitchEventType::pressed);
-    assert(keyboard_state.switch_events_[1].pressed == 1);
-    assert(keyboard_state.switch_events_[1].released == 0);
+    assert(switch_events[0].type == mkeybo::SwitchEventType::idle);
+    assert(switch_events[0].pressed == 0);
+    assert(switch_events[0].released == 0);
+    assert(switch_events[1].type == mkeybo::SwitchEventType::pressed);
+    assert(switch_events[1].pressed == 1);
+    assert(switch_events[1].released == 0);
     // cycle 2
     generator.update(k_settings, &keyboard_state);
-    assert(keyboard_state.switch_events_[0].type == mkeybo::SwitchEventType::idle);
-    assert(keyboard_state.switch_events_[0].pressed == 0);
-    assert(keyboard_state.switch_events_[0].released == 0);
-    assert(keyboard_state.switch_events_[1].type == mkeybo::SwitchEventType::pressed);
-    assert(keyboard_state.switch_events_[1].pressed == 2);
-    assert(keyboard_state.switch_events_[1].released == 0);
+    assert(switch_events[0].type == mkeybo::SwitchEventType::idle);
+    assert(switch_events[0].pressed == 0);
+    assert(switch_events[0].released == 0);
+    assert(switch_events[1].type == mkeybo::SwitchEventType::pressed);
+    assert(switch_events[1].pressed == 2);
+    assert(switch_events[1].released == 0);
     std::cout << "PASS" << std::endl;
     delete k_settings;
 }
