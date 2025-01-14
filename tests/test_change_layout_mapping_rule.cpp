@@ -3,9 +3,9 @@
 #include <cassert>
 #include <iostream>
 #include <ranges>
-#include "mkeybo/components/keyboard_settings.hpp"
+#include "mkeybo/components/KeyboardSettings.hpp"
 #include "mkeybo/components/base.hpp"
-#include "../mkeybo/components/key_mapper.hpp"
+#include "mkeybo/components/key_mapper/key_mapper.hpp"
 #include "mkeybo/factories.hpp"
 
 
@@ -20,14 +20,14 @@ void test_change_layout_mapping_rule_map()
     // no key pressed - no key events
     auto result = k_rule->map(k_settings, k_state);
     assert(result == false);
-    // assert(std::ranges::empty(k_state->keycode_events_.get_finalized_events()));
+    // assert(std::ranges::empty(k_state->keycode_events.get_finalized_events()));
     assert(!k_state->is_layer_active(1));
     assert(!k_state->is_layer_active(2));
     assert(k_state->get_active_layout() == 0);
     // layout 1 with some key pressed - cycle 1
     k_state->reset();
-    k_state->push_keycode_event_draft(H_K(2), 1);
-    k_state->push_keycode_event_draft(LAYOUT_K(1), 0);
+    k_state->keycode_events.push(H_K(2), 1, mkeybo::KeycodeEventType::finalized);
+    k_state->keycode_events.push(LAYOUT_K(1), 0, mkeybo::KeycodeEventType::finalized);
     result = k_rule->map(k_settings, k_state);
     assert(result == true); // cycle 2 is needed
     assert(k_state->get_active_layout() == 1);
