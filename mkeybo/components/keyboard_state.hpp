@@ -9,6 +9,7 @@
 
 
 namespace mkeybo {
+
 template <size_t keycodes_buffer_size>
 class KeycodeEventBuffer
 {
@@ -98,7 +99,7 @@ public:
 
     bool is_layer_active(const uint8_t layer_index) { return active_layers_[layer_index]; }
 
-    [[nodiscard]] bool is_layer_changed() const { return active_layers_prev_cycle_ != active_layers_; }
+    bool is_layer_changed() const { return active_layers_prev_cycle_ != active_layers_; }
 
     /**
      * Layout
@@ -110,7 +111,7 @@ public:
 
     auto get_active_layout() { return active_layout_; }
 
-    [[nodiscard]] bool is_layout_changed() const { return active_layout_prev_cycle_ != active_layout_; }
+    bool is_layout_changed() const { return active_layout_prev_cycle_ != active_layout_; }
 
     /**
      * Switch state
@@ -118,7 +119,7 @@ public:
 
     void reset_switch_state() { switch_state_.reset(); }
 
-    auto& get_switch_state() { return switch_state_; }
+    auto &get_switch_state() { return switch_state_; }
 
 
     /**
@@ -232,5 +233,7 @@ public:
             keycode_events_prev_cycle_.push(keycode_event);
         }
     }
+
 };
+
 }

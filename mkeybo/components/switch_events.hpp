@@ -3,8 +3,8 @@
 #include <cstdint>
 #include <limits>
 #include "base.hpp"
-#include "KeyboardSettings.hpp"
-#include "KeyboardState.hpp"
+#include "keyboard_settings.hpp"
+#include "keyboard_state.hpp"
 
 
 namespace mkeybo {
@@ -19,11 +19,11 @@ public:
     void update(const KeyboardSettings<switches_count>* keyboard_settings,
                 KeyboardState<switches_count>* keyboard_state)
     {
+        auto &switch_state = keyboard_state->get_switch_state();
+        auto& switch_events = keyboard_state->get_switch_events();
         for (size_t switch_no = 0; switch_no < switches_count; switch_no++)
         {
-            const bool pressed = keyboard_state->switch_state[switch_no];
-            auto& event = keyboard_state->switch_events[switch_no];
-            update_switch_event(keyboard_settings, pressed, event);
+            update_switch_event(keyboard_settings, switch_state[switch_no], switch_events[switch_no]);
         }
     }
 

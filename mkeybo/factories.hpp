@@ -1,8 +1,14 @@
 #pragma once
-#include "components/UsbReporter.hpp"
-#include "mkeybo/components/key_mapper/key_mapper.hpp"
-#include "mkeybo/components/SwitchEvents.hpp"
-#include "mkeybo/components/SwitchReaderMatrix.hpp"
+
+#include "components/usb_reporter.hpp"
+#include "components/key_mapper.hpp"
+#include "components/key_mapper/change_layer_mapping_rule.hpp"
+#include "components/key_mapper/change_layout_mapping_rule.hpp"
+#include "components/key_mapper/default_mapping_rule.hpp"
+#include "components/key_mapper/finalize_mapping_rule.hpp"
+#include "components/key_mapper/tap_dance_mapping_rule.hpp"
+#include "mkeybo/components/switch_events.hpp"
+#include "mkeybo/components/switch_reader_matrix.hpp"
 #include "mkeybo/components/base.hpp"
 #include "tusb.h"
 
@@ -62,9 +68,9 @@ SwitchReaderMatrix<switches_count>* create_switch_reader_matrix(const SwitchRead
 }
 
 template <size_t switches_count>
-key_mapper::KeyMapper<switches_count>* create_key_mapper()
+KeyMapper<switches_count>* create_key_mapper()
 {
-    return new key_mapper::KeyMapper<switches_count>({
+    return new KeyMapper<switches_count>({
         new key_mapper::DefaultMappingRule<switches_count>{},
         new key_mapper::TapDanceMappingRule<switches_count>{},
         new key_mapper::ChangeLayoutMappingRule<switches_count>{},

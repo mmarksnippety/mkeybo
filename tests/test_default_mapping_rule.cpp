@@ -6,7 +6,7 @@
 #include "mkeybo/components/KeyboardSettings.hpp"
 #include "mkeybo/components/base.hpp"
 #include "mkeybo/factories.hpp"
-#include "mkeybo/components/key_mapper/key_mapper.hpp"
+#include "../mkeybo/components/key_mapper.hpp"
 
 
 void test_default_mapping_rule_get_keycode()
@@ -44,17 +44,17 @@ void test_default_mapping_rule_map()
     // no key pressed - no key events
     auto result = k_rule->map(k_settings, k_state);
     assert(result == false);
-    // assert(std::ranges::empty(k_state->keycode_events.get_finalized_events()));
+    // assert(std::ranges::empty(k_state->keycode_events_.get_finalized_events()));
     // some key pressed
-    k_state->switch_events[1].type = mkeybo::SwitchEventType::pressed;
-    k_state->switch_events[1].pressed = 1;
-    k_state->switch_events[3].type = mkeybo::SwitchEventType::pressed;
-    k_state->switch_events[3].pressed = 1;
+    k_state->switch_events_[1].type = mkeybo::SwitchEventType::pressed;
+    k_state->switch_events_[1].pressed = 1;
+    k_state->switch_events_[3].type = mkeybo::SwitchEventType::pressed;
+    k_state->switch_events_[3].pressed = 1;
     result = k_rule->map(k_settings, k_state);
     assert(result == false);
-    // check keycode_events
+    // check keycode_events_
     const auto expected_keycodes = std::vector{H_K(2), LAYER_K(1)};
-    auto keycode_events_view = k_state->keycode_events.get_filtered_events();
+    auto keycode_events_view = k_state->keycode_events_.get_filtered_events();
     auto generated_keycodes = std::vector<mkeybo::Keycode>{};
     generated_keycodes.reserve(std::ranges::distance(keycode_events_view));
     for (auto& keycode_event : keycode_events_view)
