@@ -2,39 +2,72 @@
 #include "fixtures.hpp"
 
 
-void test_key_mapper_map()
+void test_key_mapper_map_idle()
 {
     constexpr auto switches_count = 4;
-    auto k_settings = k_settings_fixture<switches_count>();
-    auto k_state = new mkeybo::KeyboardState<switches_count>();
+    const auto k_settings = k_settings_fixture<switches_count>();
+    const auto k_state = new mkeybo::KeyboardState<switches_count>();
     k_state->setup_for_settings(k_settings);
-    auto k_mapper = mkeybo::create_key_mapper<switches_count>();
+    const auto k_mapper = mkeybo::create_key_mapper<switches_count>();
     std::cout << __func__ << "...";
     // idle - no keycode events
     k_mapper->map(k_settings, k_state);
-    // assert(std::ranges::empty(k_state->keycode_events_.get_finalized_events()));
+    assert(std::ranges::empty(k_state->get_filtered_keycode_events()));
+    delete k_mapper;
+    delete k_state;
+    delete k_settings;
+    std::cout << "PASS" << std::endl;
+}
+
+
+void test_key_mapper_map_simple_key()
+{
+    constexpr auto switches_count = 4;
+    const auto k_settings = k_settings_fixture<switches_count>();
+    const auto k_state = new mkeybo::KeyboardState<switches_count>();
+    k_state->setup_for_settings(k_settings);
+    const auto k_mapper = mkeybo::create_key_mapper<switches_count>();
+    std::cout << __func__ << "...";
     // switch 0
-    k_state->switch_events_[0].type = mkeybo::SwitchEventType::pressed;
-    k_state->switch_events_[0].pressed = 1;
+    auto& switch_events = k_state->get_switch_events();
+    switch_events[0].type = mkeybo::SwitchEventType::pressed;
+    switch_events[0].pressed = 1;
     k_mapper->map(k_settings, k_state);
-    auto view = k_state->keycode_events_.get_filtered_events();
+    auto view = k_state->get_filtered_keycode_events();
     assert(std::ranges::distance(view) == 1);
-    auto keycode = *std::ranges::begin(view);
-    assert(keycode.keycode == H_K(1));
+    const auto keycode_event = view.front();
+    assert(keycode_event.keycode == H_K(1));
+    assert(keycode_event.type == mkeybo::KeycodeEventType::finalized);
+    delete k_mapper;
+    delete k_state;
+    delete k_settings;
+    std::cout << "PASS" << std::endl;
+}
+
+void test_key_mapper_map_with_layer_change()
+{
+    constexpr auto switches_count = 4;
+    const auto k_settings = k_settings_fixture<switches_count>();
+    const auto k_state = new mkeybo::KeyboardState<switches_count>();
+    k_state->setup_for_settings(k_settings);
+    const auto k_mapper = mkeybo::create_key_mapper<switches_count>();
+    std::cout << __func__ << "...";
     // switch 0 and switch 3 - change layer
     k_state->reset();
-    k_state->switch_events_[0].type = mkeybo::SwitchEventType::pressed;
-    k_state->switch_events_[0].pressed = 1;
-    k_state->switch_events_[3].type = mkeybo::SwitchEventType::pressed;
-    k_state->switch_events_[3].pressed = 1;
+    auto& switch_events = k_state->get_switch_events();
+    switch_events[0].type = mkeybo::SwitchEventType::pressed;
+    switch_events[0].pressed = 1;
+    switch_events[3].type = mkeybo::SwitchEventType::pressed;
+    switch_events[3].pressed = 1;
     k_mapper->map(k_settings, k_state);
-    view = k_state->keycode_events_.get_filtered_events();
-    auto it = std::ranges::begin(view);
-    auto end = std::ranges::end(view);
-    keycode = *it++;
-    assert(keycode.keycode == H_K(100));
-    keycode = *it++;
-    assert(keycode.keycode == LAYER_K(1));
+    auto view = k_state->get_filtered_keycode_events();
+    // assert(std::ranges::distance(view) == 1);
+    auto it = view.begin();
+    const auto end = view.end();
+    auto keycode_event = *it++;
+    assert(keycode_event.keycode == H_K(100));
+    keycode_event = *it++;
+    assert(keycode_event.keycode == LAYER_K(1));
     assert(it == end);
     delete k_mapper;
     delete k_state;
