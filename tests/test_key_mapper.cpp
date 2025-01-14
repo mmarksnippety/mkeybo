@@ -61,7 +61,6 @@ void test_key_mapper_map_with_layer_change()
     switch_events[3].pressed = 1;
     k_mapper->map(k_settings, k_state);
     auto view = k_state->get_filtered_keycode_events();
-    // assert(std::ranges::distance(view) == 1);
     auto it = view.begin();
     const auto end = view.end();
     auto keycode_event = *it++;
