@@ -127,14 +127,7 @@ public:
 
 constexpr uint8_t tap_dance_hold_action = std::numeric_limits<uint8_t>::max();
 
-// TODO make settings: other_keycode_breaks_tap_dance
-// is okej when just typing, and just want to prest tap_dance_button,
-// this must breaks only tap_dance_end, just like hold
-// maybe this is okey always, but without hold?
-// To make this behavior, to KeyMaper stage must go released buttons, that have tap_dance, and release > 0
-// end what about mapping order? is this must be early than normal mapping?
-// mayby tap dance must be after simple mapping, next tap dance, next finalize???
-// Make some graph!!!!!
+// TODO test tap_dance on real keyboard
 template <size_t switches_count>
 class TapDanceMappingRule final : public BaseMappingRule<switches_count>
 {
@@ -176,17 +169,20 @@ public:
         // pressed
         if (switch_event.event_type == SwitchEventType::pressed)
         {
-            // pressed and hold. i we don't have mapping for hold, then just do nothing
-            if (switch_event.hold)
+            const auto action = actions.find(tap_dance_hold_action);
+            if (action != actions.end())
             {
-                if (const auto action = actions.find(tap_dance_hold_action); action != actions.end())
+                // this key has configured hold...
+                if (switch_event.hold)
                 {
                     keycode_event.keycode = action->second;
                     return;
                 }
+                // wait for hold!
+                keycode_event.type = KeycodeEventType::canceled;
             }
-            keycode_event.type = KeycodeEventType::canceled;
         }
+        // just pass this keycode event
     }
 };
 
