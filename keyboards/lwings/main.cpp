@@ -41,15 +41,29 @@ void print_logo()
 
 void print_keyboard_info()
 {
-    const bool print_status = !std::ranges::empty(keyboard->get_state()->get_keycode_events()) ||
+    for (auto& sw_event : keyboard->get_state()->get_switch_events())
+    {
+        if (sw_event.type == mkeybo::SwitchEventType::idle)
+        {
+            continue;
+        }
+        // std::cout << "switch|"
+        //     << mkeybo::get_switch_event_type_name(sw_event.type) << "|"
+        //     << std::to_string(sw_event.pressed) << "|"
+        //     << std::to_string(sw_event.released{0};
+        //     << std::to_string(sw_event.tap_dance{0};
+        // bool hold{false};
+        // << sw_event.switch_no << std::endl;
+    }
+    const bool print_status = !std::ranges::empty(keyboard->get_state()->get_filtered_keycode_events()) ||
         keyboard->get_usb_reporter_manager()->is_any_report_ready(keyboard->get_state());
     if (print_status)
     {
         std::cout << "--------------------------" << std::endl;
     }
-    for (auto& key_event : keyboard->get_state()->get_keycode_events())
+    for (auto& key_event : keyboard->get_state()->get_filtered_keycode_events())
     {
-        std::cout << "event|" << mkeybo::get_switch_keycode_event_type_name(key_event.type) << "|" << key_event.keycode
+        std::cout << "event|" << mkeybo::get_keycode_event_type_name(key_event.type) << "|" << key_event.keycode
                   << std::endl;
     }
     for (const auto& [keycode_type, report] : keyboard->get_state()->get_reports())

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "KeyMapper.hpp"
+#include "key_mapper/key_mapper.hpp"
 #include "SwitchEvents.hpp"
 #include "SwitchReader.hpp"
 #include "UsbReporter.hpp"
@@ -17,14 +17,15 @@ protected:
     KeyboardState<switch_count>* state_;
     SwitchReader<switch_count>* switch_reader_;
     SwitchEventsGenerator<switch_count>* switch_events_generator_;
-    KeyMapper<switch_count>* key_mapper_;
+    key_mapper::KeyMapper<switch_count>* key_mapper_;
     UsbReporterManager<switch_count>* usb_reporter_manager_;
     KeyboardSettings<switch_count>* settings_{};
     std::string unique_id_{};
 
 public:
     Keyboard(KeyboardState<switch_count>* state, SwitchReader<switch_count>* switch_reader,
-             SwitchEventsGenerator<switch_count>* switch_events_generator, KeyMapper<switch_count>* key_mapper,
+             SwitchEventsGenerator<switch_count>* switch_events_generator,
+             key_mapper::KeyMapper<switch_count>* key_mapper,
              UsbReporterManager<switch_count>* usb_reporter_manager) :
         state_(state), switch_reader_(switch_reader), switch_events_generator_(switch_events_generator),
         key_mapper_(key_mapper), usb_reporter_manager_(usb_reporter_manager)
@@ -44,7 +45,7 @@ public:
     KeyboardState<switch_count>* get_state() { return state_; }
     SwitchReader<switch_count>* get_switch_reader() { return switch_reader_; }
     SwitchEventsGenerator<switch_count>* get_switch_events_generator() { return switch_events_generator_; }
-    KeyMapper<switch_count>* get_key_mapper() { return key_mapper_; }
+    key_mapper::KeyMapper<switch_count>* get_key_mapper() { return key_mapper_; }
     UsbReporterManager<switch_count>* get_usb_reporter_manager() { return usb_reporter_manager_; }
     KeyboardSettings<switch_count>* get_settings() { return settings_; }
 
@@ -114,16 +115,43 @@ public:
     void send_usb_report() { usb_reporter_manager_->send_reports(state_); }
 
     // some event from livecycle
-    virtual void on_update_settings() {}
-    virtual void on_switch_events_generate() {}
-    virtual void on_key_mapping() {}
-    virtual void on_led_status_update() {}
-    virtual void on_usb_report_ready() {}
+    virtual void on_update_settings()
+    {
+    }
+
+    virtual void on_switch_events_generate()
+    {
+    }
+
+    virtual void on_key_mapping()
+    {
+    }
+
+    virtual void on_led_status_update()
+    {
+    }
+
+    virtual void on_usb_report_ready()
+    {
+    }
+
     // that callbacks are called by TinyUSB, see mkeybo/defaults/usb_callbacks.cpp
-    virtual void on_usb_mount() {}
-    virtual void on_usb_umount() {}
-    virtual void on_usb_suspend() {}
-    virtual void on_usb_resume() {}
+    virtual void on_usb_mount()
+    {
+    }
+
+    virtual void on_usb_umount()
+    {
+    }
+
+    virtual void on_usb_suspend()
+    {
+    }
+
+    virtual void on_usb_resume()
+    {
+    }
+
     virtual void on_usb_report_receive(uint8_t const* buffer, uint16_t buffer_length)
     {
         LedStatus led_status{*buffer};

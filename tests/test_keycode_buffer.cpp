@@ -44,7 +44,7 @@ void test_keycode_event_buffer_get_finalized_events()
     buffer.push(mkeybo::Keycode{mkeybo::KeycodeType::null}, 4, mkeybo::KeycodeEventType::finalized);
     buffer.push(mkeybo::Keycode{mkeybo::KeycodeType::sentinel}, 5, mkeybo::KeycodeEventType::finalized);
     const std::vector<uint16_t> expected_items = {100, 102};
-    for (auto index=0; const auto& keycode_event : buffer.get_finalized_events()) {
+    for (auto index=0; const auto& keycode_event : buffer.get_filtered_events()) {
         assert(keycode_event.type == mkeybo::KeycodeEventType::finalized);
         assert(keycode_event.keycode.code == expected_items[index]);
         index++;
@@ -66,7 +66,7 @@ void test_keycode_event_buffer_get_finalized_events_only_one_type()
         mkeybo::Keycode{mkeybo::KeycodeType::hid, 100},
         mkeybo::Keycode{mkeybo::KeycodeType::hid, 103}
     };
-    for (auto index = 0; const auto& keycode_event : buffer.get_finalized_events(mkeybo::KeycodeType::hid))
+    for (auto index = 0; const auto& keycode_event : buffer.get_filtered_events(mkeybo::KeycodeType::hid))
     {
         assert(filtered_keycodes[index] == keycode_event.keycode);
         index++;

@@ -112,11 +112,9 @@ public:
         auto reporters_end = reporters_.end();
         auto reports_it = keyboard_state->usb_reports.begin();
         auto reports_end = keyboard_state->usb_reports.end();
-        // std::pair<const KeycodeType, UsbReport*> report_pair{};
         while (reports_it != reports_end)
         {
-            auto report_pair = *reports_it;
-            if (report_pair.second->status == UsbReportStatus::ready)
+            if (auto report_pair = *reports_it; report_pair.second->status == UsbReportStatus::ready)
             {
                 auto reporter = *reporters_it;
                 reporter->send_report(report_pair.second);
@@ -165,7 +163,6 @@ public:
         generate_report_modifiers(get_modifiers_keycodes(keyboard_state), report);
         generate_report_keycodes(get_regular_keycodes(keyboard_state), report);
         report->status = UsbReportStatus::ready;
-        // std::cout << "UsbHidKeycodeReporter::generate_report:" << report << std::endl;
     }
 
     /**
@@ -213,14 +210,14 @@ public:
 
     auto get_regular_keycodes(KeyboardState<switches_count>* keyboard_state)
     {
-        return keyboard_state->get_keycode_events(keycode_type) |
+        return keyboard_state->get_filtered_keycode_events(keycode_type) |
             std::views::filter([](const auto& keycode_event)
                                { return keycode_event.keycode.code < HID_KEY_CONTROL_LEFT; });
     }
 
     auto get_modifiers_keycodes(KeyboardState<switches_count>* keyboard_state)
     {
-        return keyboard_state->get_keycode_events(keycode_type) |
+        return keyboard_state->get_filtered_keycode_events(keycode_type) |
             std::views::filter([](const auto& keycode_event)
                                { return keycode_event.keycode.code >= HID_KEY_CONTROL_LEFT; });
     }
@@ -255,7 +252,7 @@ public:
         const auto report = reinterpret_cast<UsbCcKeycodeReport*>(this->get_report(keyboard_state));
         report->status = UsbReportStatus::draft;
         report->keycode = 0;
-        auto keycode_event_view = keyboard_state->get_keycode_events(keycode_type);
+        auto keycode_event_view = keyboard_state->get_filtered_keycode_events(keycode_type);
         auto keycode_event_it = keycode_event_view.begin();
         if (keycode_event_it != keycode_event_view.end())
         {

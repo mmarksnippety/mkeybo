@@ -37,26 +37,24 @@ public:
 
     auto& get_all_events() { return buffer_; }
 
-    auto get_finalized_events()
+    auto get_filtered_events()
     {
-        return buffer_ |
-            std::views::filter(
-                   [](const auto& keycode_event)
-                   {
-                       return keycode_event.type == KeycodeEventType::finalized && !keycode_event.keycode.is_null() &&
-                           !keycode_event.keycode.is_sentinel();
-                   });
+        return std::views::filter(buffer_,
+                                  [](const auto& keycode_event)
+                                  {
+                                      return keycode_event.type != KeycodeEventType::canceled && !keycode_event.keycode.
+                                          is_null() && !keycode_event.keycode.is_sentinel();
+                                  });
     }
 
-    auto get_finalized_events(const KeycodeType& keycode_type)
+    auto get_filtered_events(const KeycodeType keycode_type)
     {
-        return buffer_ |
-            std::views::filter(
-                   [keycode_type](const auto& keycode_event)
-                   {
-                       return keycode_event.keycode.type == keycode_type &&
-                           keycode_event.type == KeycodeEventType::finalized;
-                   });
+        return std::views::filter(buffer_,
+                                  [keycode_type](const auto& keycode_event)
+                                  {
+                                      return keycode_event.type != KeycodeEventType::canceled && keycode_event.keycode.
+                                          type == keycode_type;
+                                  });
     }
 };
 
@@ -69,6 +67,7 @@ protected:
     uint8_t active_layout_{};
     uint8_t active_layout_prev_cycle_{};
     KeycodeEventBuffer<keycodes_buffer_size> keycode_events_prev_cycle_;
+    KeycodeEventBuffer<keycodes_buffer_size> keycode_events_draft_;
     LedStatus led_status_{};
 
 public:
@@ -78,6 +77,7 @@ public:
     std::map<KeycodeType, UsbReport*> usb_reports;
 
     KeyboardState() { reset(); }
+
     ~KeyboardState()
     {
         for (const auto& report : std::views::values(usb_reports))
@@ -107,44 +107,85 @@ public:
     void next_cycle()
     {
         active_layers_prev_cycle_ = active_layers_;
-        std::fill(active_layers_.begin(), active_layers_.end(), false);
         active_layout_prev_cycle_ = active_layout_;
         // copy keycodes events to prev cycle
         keycode_events_prev_cycle_.reset();
-        for (auto& keycode_event : keycode_events.get_finalized_events())
+        for (auto& keycode_event : keycode_events.get_filtered_events())
         {
             keycode_events_prev_cycle_.push(keycode_event);
         }
     }
 
+    auto& get_active_layers() { return active_layers_; }
+
+    void reset_active_layers() { std::fill(active_layers_.begin(), active_layers_.end(), false); }
+
     void set_active_layer(const uint8_t layer_index, const bool active = true) { active_layers_[layer_index] = active; }
+
     bool is_layer_active(const uint8_t layer_index) { return active_layers_[layer_index]; }
+
     [[nodiscard]] bool is_layer_changed() const { return active_layers_prev_cycle_ != active_layers_; }
 
     void set_active_layout(const uint8_t layout_index) { active_layout_ = layout_index; }
+
     auto get_active_layout() { return active_layout_; }
+
     [[nodiscard]] bool is_layout_changed() const { return active_layout_prev_cycle_ != active_layout_; }
 
+    // switch events
+    void reset_switch_events() { std::fill(switch_events.begin(), switch_events.end(), SwitchEvent{}); }
+
+    auto& get_switch_events() { return switch_events; }
+
+    //draft keycodes
+    void reset_keycode_events_draft() { keycode_events_draft_.reset(); }
+
+    auto& get_keycode_events_draft() { return keycode_events_draft_; }
+
+    void push_keycode_event_draft(const KeycodeEvent& keycode_event) { keycode_events_draft_.push(keycode_event); }
+
+    void push_keycode_event_draft(const Keycode& keycode, const uint8_t switch_no = std::numeric_limits<uint8_t>::max(),
+                                  const KeycodeEventType type = KeycodeEventType::draft)
+    {
+        keycode_events_draft_.push(keycode, switch_no, type);
+    }
+
+    auto& get_all_keycode_events_draft() { return keycode_events_draft_.get_all_events(); }
+
+    auto get_filtered_keycode_events_draft() { return keycode_events_draft_.get_filtered_events(); }
+
+    auto get_filtered_keycode_events_draft(const KeycodeType keycode_type)
+    {
+        return keycode_events_draft_.get_filtered_events(keycode_type);
+    }
+
     // keycodes events shortcuts
+    void reset_keycode_events() { keycode_events.reset(); }
     void push_keycode_event(const KeycodeEvent& keycode_event) { keycode_events.push(keycode_event); }
+
     void push_keycode_event(const Keycode& keycode, const uint8_t switch_no = std::numeric_limits<uint8_t>::max(),
                             const KeycodeEventType type = KeycodeEventType::draft)
     {
         keycode_events.push(keycode, switch_no, type);
     }
 
-    auto get_all_keycode_events() { return keycode_events.get_all_events(); }
+    auto& get_all_keycode_events() { return keycode_events.get_all_events(); }
 
-    auto get_keycode_events(KeycodeType& keycode_type) { return keycode_events.get_finalized_events(keycode_type); }
-
-    auto get_keycode_events() { return keycode_events.get_finalized_events(); }
-
-    [[nodiscard]] bool have_keycode_events_changed(const KeycodeType& keycode_type)
+    auto get_filtered_keycode_events(const KeycodeType keycode_type)
     {
-        return !std::ranges::equal(keycode_events.get_finalized_events(keycode_type),
-                                   keycode_events_prev_cycle_.get_finalized_events(keycode_type));
+        return keycode_events.get_filtered_events(keycode_type);
     }
 
+    auto get_filtered_keycode_events() { return keycode_events.get_filtered_events(); }
+
+    //
+    [[nodiscard]] bool have_keycode_events_changed(const KeycodeType& keycode_type)
+    {
+        return !std::ranges::equal(keycode_events.get_filtered_events(keycode_type),
+                                   keycode_events_prev_cycle_.get_filtered_events(keycode_type));
+    }
+
+    // reports
     [[nodiscard]] auto& get_reports() { return usb_reports; }
 
     [[nodiscard]] auto& get_led_status() { return led_status_; }

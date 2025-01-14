@@ -77,7 +77,7 @@ struct SwitchEvent
     uint8_t released{0};
     uint8_t tap_dance{0};
     bool hold{false};
-    SwitchEventType event_type{SwitchEventType::idle};
+    SwitchEventType type{SwitchEventType::idle};
 };
 
 

@@ -36,7 +36,7 @@ public:
             // counters update
             if (event.released > 0)
             {
-                event.event_type = SwitchEventType::idle;
+                event.type = SwitchEventType::idle;
                 event.pressed = 1;
                 event.released = 0;
             }
@@ -45,10 +45,10 @@ public:
                 if (event.pressed < std::numeric_limits<uint8_t>::max()) { ++event.pressed; }
             }
             // idle -> pressed, increase tap dance
-            if (event.event_type == SwitchEventType::idle && event.pressed >= keyboard_settings->
+            if (event.type == SwitchEventType::idle && event.pressed >= keyboard_settings->
                 press_min_interval_cycles)
             {
-                event.event_type = SwitchEventType::pressed;
+                event.type = SwitchEventType::pressed;
                 ++event.tap_dance;
                 return;
             }
@@ -64,24 +64,24 @@ public:
             // change from pressed to released
             if (event.pressed > 0)
             {
-                event.event_type = SwitchEventType::released;
+                event.type = SwitchEventType::released;
                 event.pressed = 0;
                 event.released = 1;
                 event.hold = false;
                 return;
             }
             // change to tap_dance_end or idle (after hold no tap_dance_end)
-            if (event.event_type == SwitchEventType::released and event.released >= keyboard_settings->
+            if (event.type == SwitchEventType::released and event.released >= keyboard_settings->
                 tap_dance_max_interval_cycles)
             {
-                event.event_type = event.tap_dance > 0 ? SwitchEventType::tap_dance_end : SwitchEventType::idle;
+                event.type = event.tap_dance > 0 ? SwitchEventType::tap_dance_end : SwitchEventType::idle;
                 event.released = 0;
                 return;
             }
             // back from tap_dance_end to idle
-            if (event.event_type == SwitchEventType::tap_dance_end)
+            if (event.type == SwitchEventType::tap_dance_end)
             {
-                event.event_type = SwitchEventType::idle;
+                event.type = SwitchEventType::idle;
                 event.tap_dance = 0;
                 return;
             }

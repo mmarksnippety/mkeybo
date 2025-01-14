@@ -52,7 +52,7 @@ inline std::string_view get_switch_event_type_name(const SwitchEventType& type)
     }
 }
 
-inline std::string_view get_switch_keycode_event_type_name(const KeycodeEventType& type)
+inline std::string_view get_keycode_event_type_name(const KeycodeEventType& type)
 {
     switch (type)
     {

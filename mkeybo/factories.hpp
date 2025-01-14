@@ -1,6 +1,6 @@
 #pragma once
 #include "components/UsbReporter.hpp"
-#include "mkeybo/components/KeyMapper.hpp"
+#include "mkeybo/components/key_mapper/key_mapper.hpp"
 #include "mkeybo/components/SwitchEvents.hpp"
 #include "mkeybo/components/SwitchReaderMatrix.hpp"
 #include "mkeybo/components/base.hpp"
@@ -62,13 +62,14 @@ SwitchReaderMatrix<switches_count>* create_switch_reader_matrix(const SwitchRead
 }
 
 template <size_t switches_count>
-KeyMapper<switches_count>* create_key_mapper()
+key_mapper::KeyMapper<switches_count>* create_key_mapper()
 {
-    return new KeyMapper<switches_count>({
-        new DefaultMappingRule<switches_count>(),
-        new TapDanceMappingRule<switches_count>(),
-        new ChangeLayoutMappingRule<switches_count>(),
-        new ChangeLayerMappingRule<switches_count>(),
+    return new key_mapper::KeyMapper<switches_count>({
+        new key_mapper::DefaultMappingRule<switches_count>{},
+        new key_mapper::TapDanceMappingRule<switches_count>{},
+        new key_mapper::ChangeLayoutMappingRule<switches_count>{},
+        new key_mapper::ChangeLayerMappingRule<switches_count>{},
+        new key_mapper::FinalizeMappingRule<switches_count>{},
     });
 }
 
@@ -76,8 +77,8 @@ template <size_t switches_count>
 UsbReporterManager<switches_count>* create_usb_reporter_manager()
 {
     return new UsbReporterManager<switches_count>({
-        new UsbHidKeycodeReporter<switches_count>(),
-        new UsbCcKeycodeReporter<switches_count>()
+        new UsbHidKeycodeReporter<switches_count>{},
+        new UsbCcKeycodeReporter<switches_count>{}
     });
 }
 
