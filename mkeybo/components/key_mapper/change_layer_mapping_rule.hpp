@@ -15,7 +15,6 @@ public:
     bool map(KeyboardSettings<switches_count>* keyboard_settings,
              KeyboardState<switches_count>* keyboard_state) override
     {
-        keyboard_state->reset_active_layers();
         bool layer_changed = false;
         for (auto& keycode_event : keyboard_state->get_filtered_keycode_events_draft(KeycodeType::layer))
         {

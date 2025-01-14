@@ -9,8 +9,6 @@
 
 
 namespace mkeybo::key_mapper {
-
-
 constexpr uint8_t tap_dance_hold_action = std::numeric_limits<uint8_t>::max();
 
 template <size_t switches_count>
@@ -54,21 +52,21 @@ public:
         // pressed
         if (switch_event.type == SwitchEventType::pressed)
         {
-            if (const auto hold_action = actions.find(tap_dance_hold_action); hold_action != actions.end())
+            const auto hold_action = actions.find(tap_dance_hold_action);
+            const auto has_hold_action = hold_action != actions.end();
+            if (switch_event.hold)
             {
-                // this key has configured hold...
-                if (switch_event.hold)
+                if (has_hold_action)
                 {
                     keycode_event.keycode = hold_action->second;
-                    return;
                 }
-                // wait for hold!
-                keycode_event.type = KeycodeEventType::canceled;
+                this->finalize_keycode_event(keyboard_state, keycode_event);
+                return;
             }
+            // wait for hold or tap_dance_end, or TODO: other key_pressed
+            keycode_event.type = KeycodeEventType::canceled;
         }
         // just pass this keycode event
     }
 };
-
-
 }

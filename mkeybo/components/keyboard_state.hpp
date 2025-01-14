@@ -9,7 +9,6 @@
 
 
 namespace mkeybo {
-
 template <size_t keycodes_buffer_size>
 class KeycodeEventBuffer
 {
@@ -119,7 +118,7 @@ public:
 
     void reset_switch_state() { switch_state_.reset(); }
 
-    auto &get_switch_state() { return switch_state_; }
+    auto& get_switch_state() { return switch_state_; }
 
 
     /**
@@ -233,7 +232,5 @@ public:
             keycode_events_prev_cycle_.push(keycode_event);
         }
     }
-
 };
-
 }
