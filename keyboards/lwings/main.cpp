@@ -66,7 +66,7 @@ void print_keyboard_info()
         std::cout << "event|" << mkeybo::get_keycode_event_type_name(key_event.type) << "|" << key_event.keycode
                   << std::endl;
     }
-    for (const auto& [keycode_type, report] : keyboard->get_state()->get_reports())
+    for (const auto& [keycode_type, report] : keyboard->get_state()->get_usb_reports())
     {
         if (keycode_type == mkeybo::KeycodeType::hid && report->status == mkeybo::UsbReportStatus::ready)
         {

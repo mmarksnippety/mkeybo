@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../KeyboardSettings.hpp"
-#include "../KeyboardState.hpp"
+#include "../keyboard_settings.hpp"
+#include "../keyboard_state.hpp"
 #include "../base.hpp"
-#include "BaseMappingRule.hpp"
+#include "base_mapping_rule.hpp"
 
 
 namespace mkeybo::key_mapper {

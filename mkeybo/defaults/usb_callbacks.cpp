@@ -1,5 +1,5 @@
 #include "config.hpp"
-#include "mkeybo/components/Keyboard.hpp"
+#include "mkeybo/components/keyboard.hpp"
 
 /**
  * Implementation of callback defined in /external/pico-sdk/lib/tinyusb/src/device/usbd.h

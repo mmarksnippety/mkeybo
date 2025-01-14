@@ -1,10 +1,7 @@
 #pragma once
 
-#include <any>
-#include <limits>
-#include <map>
-#include "../KeyboardSettings.hpp"
-#include "../KeyboardState.hpp"
+#include "../keyboard_settings.hpp"
+#include "../keyboard_state.hpp"
 #include "../base.hpp"
 
 

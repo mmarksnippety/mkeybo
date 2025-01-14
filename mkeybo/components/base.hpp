@@ -1,6 +1,3 @@
-/**
- * Base types used in all components
- */
 #pragma once
 
 
@@ -10,6 +7,10 @@
 
 
 namespace mkeybo {
+
+/**
+ * Base types used in all components
+ */
 
 /**
  * This enum class represents types of keycodes used in this firmware.
@@ -79,7 +80,6 @@ struct SwitchEvent
     bool hold{false};
     SwitchEventType type{SwitchEventType::idle};
 };
-
 
 enum class KeycodeEventType : uint8_t
 {

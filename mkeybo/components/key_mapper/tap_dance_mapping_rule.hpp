@@ -1,12 +1,11 @@
 #pragma once
 
-#include <any>
 #include <limits>
 #include <map>
-#include "../KeyboardSettings.hpp"
-#include "../KeyboardState.hpp"
+#include "../keyboard_settings.hpp"
+#include "../keyboard_state.hpp"
 #include "../base.hpp"
-#include "BaseMappingRule.hpp"
+#include "base_mapping_rule.hpp"
 
 
 namespace mkeybo::key_mapper {
@@ -41,7 +40,7 @@ public:
     void map_event(KeyboardState<switches_count>* keyboard_state, KeycodeEvent& keycode_event,
                    const std::map<uint8_t, Keycode>& actions)
     {
-        auto switch_event = keyboard_state->switch_events[keycode_event.switch_no];
+        auto switch_event = keyboard_state->get_switch_events()[keycode_event.switch_no];
         // emit keycode at end of tapdance
         if (switch_event.type == SwitchEventType::tap_dance_end)
         {

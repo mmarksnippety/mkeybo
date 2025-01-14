@@ -1,5 +1,5 @@
 #include "config.hpp"
-#include "mkeybo/components/Keyboard.hpp"
+#include "mkeybo/components/keyboard.hpp"
 #include "mkeybo/components/base.hpp"
 #include "tusb.h"
 

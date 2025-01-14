@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mkeybo/components/SwitchReaderMatrix.hpp"
+#include "mkeybo/components/switch_reader_matrix.hpp"
 #include "mkeybo/components/base.hpp"
 
 

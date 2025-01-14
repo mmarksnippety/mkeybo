@@ -3,7 +3,7 @@
 #include <bitset>
 #include <iostream>
 #include "pico/stdlib.h"
-#include "SwitchReader.hpp"
+#include "switch_reader.hpp"
 
 
 /**
@@ -11,8 +11,6 @@
  *
  * How it works: In loop settings high state on column and next read all switches
  * state in this column.
- *
- * @tparam switches_count
  */
 
 namespace mkeybo {

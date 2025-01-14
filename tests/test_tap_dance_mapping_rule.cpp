@@ -7,7 +7,7 @@
 #include "mkeybo/components/base.hpp"
 #include "mkeybo/factories.hpp"
 #include "mkeybo/debug.hpp"
-#include "mkeybo/components/key_mapper/key_mapper.hpp"
+#include "../mkeybo/components/key_mapper.hpp"
 
 
 void test_tap_dance_mapping_rule_map_event_tap_dance_end()
@@ -20,10 +20,10 @@ void test_tap_dance_mapping_rule_map_event_tap_dance_end()
     k_state->setup_for_settings(k_settings);
     auto k_rule = new mkeybo::key_mapper::TapDanceMappingRule<switches_count>();
     std::cout << __func__ << "...";
-    k_state->switch_events[0].type = mkeybo::SwitchEventType::tap_dance_end;
-    k_state->switch_events[0].tap_dance = 1;
-    k_state->keycode_events.push(H_K(1), 0, mkeybo::KeycodeEventType::draft);
-    auto k_event = k_state->keycode_events.get_all_events().front();
+    k_state->switch_events_[0].type = mkeybo::SwitchEventType::tap_dance_end;
+    k_state->switch_events_[0].tap_dance = 1;
+    k_state->keycode_events_.push(H_K(1), 0, mkeybo::KeycodeEventType::draft);
+    auto k_event = k_state->keycode_events_.get_all_events().front();
     k_rule->map_event(k_state, k_event, tap_dance_map);
     assert(k_event.keycode == H_K(1));
     assert(k_event.type == mkeybo::KeycodeEventType::finalized);
@@ -43,11 +43,11 @@ void test_tap_dance_mapping_rule_map_event_tap_dance_end_with_action()
     k_state->setup_for_settings(k_settings);
     auto k_rule = new mkeybo::key_mapper::TapDanceMappingRule<switches_count>();
     std::cout << __func__ << "...";
-    k_state->switch_events[0].type = mkeybo::SwitchEventType::tap_dance_end;
-    k_state->switch_events[0].tap_dance = 2;
+    k_state->switch_events_[0].type = mkeybo::SwitchEventType::tap_dance_end;
+    k_state->switch_events_[0].tap_dance = 2;
     //TODO: test refrence!!!! (regresion test!)
-    k_state->keycode_events.push(H_K(1), 0, mkeybo::KeycodeEventType::draft);
-    auto k_event = k_state->keycode_events.get_all_events().front();
+    k_state->keycode_events_.push(H_K(1), 0, mkeybo::KeycodeEventType::draft);
+    auto k_event = k_state->keycode_events_.get_all_events().front();
     k_rule->map_event(k_state, k_event, tap_dance_map);
     assert(k_event.keycode == H_K(10));
     assert(k_event.type == mkeybo::KeycodeEventType::finalized);
@@ -67,10 +67,10 @@ void test_tap_dance_mapping_rule_map_event_press_hold()
     k_state->setup_for_settings(k_settings);
     auto k_rule = new mkeybo::key_mapper::TapDanceMappingRule<switches_count>();
     std::cout << __func__ << "...";
-    k_state->switch_events[0].type = mkeybo::SwitchEventType::pressed;
-    k_state->switch_events[0].hold = true;
-    k_state->keycode_events.push(H_K(1), 0, mkeybo::KeycodeEventType::finalized);
-    auto k_event = k_state->keycode_events.get_all_events().front();
+    k_state->switch_events_[0].type = mkeybo::SwitchEventType::pressed;
+    k_state->switch_events_[0].hold = true;
+    k_state->keycode_events_.push(H_K(1), 0, mkeybo::KeycodeEventType::finalized);
+    auto k_event = k_state->keycode_events_.get_all_events().front();
     k_rule->map_event(k_state, k_event, tap_dance_map);
     assert(k_event.keycode == H_K(20));
     assert(k_event.type == mkeybo::KeycodeEventType::finalized);
@@ -90,10 +90,10 @@ void test_tap_dance_mapping_rule_map_event_press()
     k_state->setup_for_settings(k_settings);
     const auto k_rule = new mkeybo::key_mapper::TapDanceMappingRule<switches_count>();
     std::cout << __func__ << "...";
-    k_state->switch_events[0].type = mkeybo::SwitchEventType::pressed;
-    k_state->switch_events[0].hold = true;
-    k_state->keycode_events.push(H_K(1), 0, mkeybo::KeycodeEventType::finalized);
-    auto k_event = k_state->keycode_events.get_all_events().front();
+    k_state->switch_events_[0].type = mkeybo::SwitchEventType::pressed;
+    k_state->switch_events_[0].hold = true;
+    k_state->keycode_events_.push(H_K(1), 0, mkeybo::KeycodeEventType::finalized);
+    auto k_event = k_state->keycode_events_.get_all_events().front();
     k_rule->map_event(k_state, k_event, tap_dance_map);
     assert(k_event.keycode == H_K(1));
     assert(k_event.type == mkeybo::KeycodeEventType::canceled);

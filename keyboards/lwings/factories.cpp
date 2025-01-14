@@ -1,7 +1,7 @@
 #include "mkeybo/factories.hpp"
 #include "config.hpp"
 #include "factories.hpp"
-#include "mkeybo/components/KeyboardSettings.hpp"
+#include "mkeybo/components/keyboard_settings.hpp"
 #include "mkeybo/components/base.hpp"
 #include "tusb.h"
 

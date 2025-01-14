@@ -1,36 +1,30 @@
 #pragma once
 
-#include "../KeyboardSettings.hpp"
-#include "../KeyboardState.hpp"
-#include "BaseMappingRule.hpp"
+#include "keyboard_settings.hpp"
+#include "keyboard_state.hpp"
+#include "key_mapper/base_mapping_rule.hpp"
 
 
-namespace mkeybo::key_mapper {
-
+namespace mkeybo {
 
 template <size_t switches_count>
 class KeyMapper
 {
-    std::vector<BaseMappingRule<switches_count>*> rules_;
+    std::vector<key_mapper::BaseMappingRule<switches_count>*> rules_;
 
 public:
-    explicit KeyMapper(const std::vector<BaseMappingRule<switches_count>*>& rules) :
+    explicit KeyMapper(const std::vector<key_mapper::BaseMappingRule<switches_count>*>& rules) :
         rules_(rules)
     {
     }
 
-    ~KeyMapper() { delete_rules(); };
-
-    void add_rule(BaseMappingRule<switches_count>* rule) { rules_.push_back(rule); }
-
-    void delete_rules()
+    ~KeyMapper()
     {
         for (auto rule : rules_)
         {
             delete rule;
         }
-        rules_.clear();
-    }
+    };
 
     void map(KeyboardSettings<switches_count>* keyboard_settings, KeyboardState<switches_count>* keyboard_state)
     {
