@@ -3,7 +3,7 @@
 #include <ranges>
 #include <vector>
 #include "mkeybo/components/base.hpp"
-#include "mkeybo/components/KeyboardState.hpp"
+#include "mkeybo/components/keyboard_state.hpp"
 #include "test_keycode_buffer.hpp"
 
 void test_keycode_event_buffer_push()

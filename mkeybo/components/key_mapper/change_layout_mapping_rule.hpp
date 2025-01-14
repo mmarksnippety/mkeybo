@@ -21,9 +21,9 @@ public:
             if (keyboard_state->get_active_layout() != keycode_event.keycode.code)
             {
                 keyboard_state->set_active_layout(keycode_event.keycode.code);
+                keycode_event.type = KeycodeEventType::canceled;
                 layout_changed = true;
             }
-            keycode_event.type = KeycodeEventType::canceled;
         }
         return layout_changed;
     }

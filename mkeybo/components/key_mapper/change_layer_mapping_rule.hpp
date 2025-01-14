@@ -15,15 +15,16 @@ public:
     bool map(KeyboardSettings<switches_count>* keyboard_settings,
              KeyboardState<switches_count>* keyboard_state) override
     {
+        keyboard_state->reset_active_layers();
         bool layer_changed = false;
         for (auto& keycode_event : keyboard_state->get_filtered_keycode_events_draft(KeycodeType::layer))
         {
             if (!keyboard_state->is_layer_active(keycode_event.keycode.code))
             {
                 keyboard_state->set_active_layer(keycode_event.keycode.code);
+                keycode_event.type = KeycodeEventType::canceled;
                 layer_changed = true;
             }
-            keycode_event.type = KeycodeEventType::canceled;
         }
         return layer_changed;
     }
