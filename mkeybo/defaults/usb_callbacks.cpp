@@ -7,6 +7,12 @@
  */
 
 
+/**
+ * Implementation of callback defined in /external/pico-sdk/lib/tinyusb/src/device/usbd.h
+ * This set of callbacks are from keyboard (or other HID device) lifcycle
+ */
+
+
 extern mkeybo::Keyboard<keyboard_config.switches_count>* keyboard;
 
 
