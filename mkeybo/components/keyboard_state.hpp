@@ -18,12 +18,13 @@ protected:
     std::vector<bool> active_layers_{};
     std::vector<bool> active_layers_prev_cycle_{};
     uint8_t active_layout_{};
+    size_t layout_size_{};
     uint8_t active_layout_prev_cycle_{};
     std::bitset<switches_count> switch_state_{};
-    std::array<SwitchEvent, switches_count> switch_events_;
-    KeycodeEventBuffer<keycodes_buffer_size> keycode_events_draft_;
-    KeycodeEventBuffer<keycodes_buffer_size> keycode_events_prev_cycle_;
-    KeycodeEventBuffer<keycodes_buffer_size> keycode_events_;
+    std::array<SwitchEvent, switches_count> switch_events_{};
+    KeycodeEventBuffer<keycodes_buffer_size> keycode_events_draft_{};
+    KeycodeEventBuffer<keycodes_buffer_size> keycode_events_prev_cycle_{};
+    KeycodeEventBuffer<keycodes_buffer_size> keycode_events_{};
     LedStatus led_status_{};
 
 public:
@@ -46,7 +47,14 @@ public:
 
     void reset_active_layers() { std::fill(active_layers_.begin(), active_layers_.end(), false); }
 
-    void set_active_layer(const uint8_t layer_index, const bool active = true) { active_layers_[layer_index] = active; }
+    void set_active_layer(const uint8_t layer_index, const bool active = true)
+    {
+        if (layer_index >= active_layers_.size())
+        {
+            return;
+        }
+        active_layers_[layer_index] = active;
+    }
 
     auto& get_active_layers() { return active_layers_; }
 
@@ -60,7 +68,14 @@ public:
 
     void reset_active_layout() { active_layout_ = 0; }
 
-    void set_active_layout(const uint8_t layout_index) { active_layout_ = layout_index; }
+    void set_active_layout(const uint8_t layout_index)
+    {
+        if (layout_index >= layout_size_)
+        {
+            return;
+        }
+        active_layout_ = layout_index;
+    }
 
     auto get_active_layout() { return active_layout_; }
 
@@ -157,6 +172,7 @@ public:
 
     void setup_for_settings(KeyboardSettings<switches_count>* settings)
     {
+        layout_size_ = settings->layouts.size();
         active_layers_.resize(settings->layers.size());
         active_layers_prev_cycle_.resize(settings->layers.size());
         reset();
