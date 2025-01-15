@@ -59,16 +59,6 @@ struct KeyboardSettingsRule
 {
 };
 
-struct KeyboardSettingsTapDanceRuleConfig : KeyboardSettingsRule
-{
-    std::map<Keycode, std::map<uint8_t, Keycode>> actions;
-
-    explicit KeyboardSettingsTapDanceRuleConfig(const std::map<Keycode, std::map<uint8_t, Keycode>>& actions) :
-        actions{actions}
-    {
-    }
-};
-
 template <size_t switches_count>
 struct KeyboardSettings
 {
@@ -123,6 +113,42 @@ struct KeyboardSettings
         }
     }
 };
+
+// specific rule settings
+
+struct KeyboardSettingsTapDanceRule : KeyboardSettingsRule
+{
+    std::map<Keycode, std::map<uint8_t, Keycode>> actions;
+
+    explicit KeyboardSettingsTapDanceRule(const std::map<Keycode, std::map<uint8_t, Keycode>>& actions) :
+        actions{actions}
+    {
+    }
+};
+
+struct KeyboardSettingsMultiMappingRule : KeyboardSettingsRule
+{
+    std::vector<std::pair<std::vector<Keycode>, Keycode>> actions;
+
+    explicit KeyboardSettingsMultiMappingRule(const std::vector<std::pair<std::vector<Keycode>, Keycode>>& actions) :
+        actions{actions}
+    {
+    }
+};
+
+inline std::string keyboard_settings_tap_dance_rule = "tap_dance";
+inline std::string keyboard_settings_multi_mapping_rule = "multi_mapping";
+
+template <class RuleSettings, size_t switches_count>
+RuleSettings* get_rule_settings(KeyboardSettings<switches_count>* keyboard_settings, const std::string& rule_name)
+{
+    auto rule_settings = keyboard_settings->rules.find(rule_name);
+    if (rule_settings == keyboard_settings->rules.end())
+    {
+        return nullptr;
+    }
+    return reinterpret_cast<RuleSettings*>(rule_settings->second);
+}
 
 
 } // namespace mkeybo

@@ -23,8 +23,8 @@ auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
             H_K(HID_KEY_Z), H_K(HID_KEY_X), H_K(HID_KEY_C), H_K(HID_KEY_V), H_K(HID_KEY_B),
             H_K(HID_KEY_N), H_K(HID_KEY_M), H_K(HID_KEY_PERIOD), H_K(HID_KEY_SLASH), H_K(HID_KEY_ENTER),
             // 4
-            K_N(), K_N(), K_N(), LAYER_K(0), H_K(HID_KEY_SPACE),
-            H_K(HID_KEY_BACKSPACE), LAYER_K(1), K_N(), K_N(), K_N(),
+            K_N(), K_N(), K_N(), LAYER_K(0), H_K(HID_KEY_BACKSPACE),
+            H_K(HID_KEY_SPACE), LAYER_K(1), K_N(), K_N(), K_N(),
        }
     };
     auto layer_down = new mkeybo::KeyboardSettingsLayer<switches_count>{
@@ -55,16 +55,15 @@ auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
             K_N(), K_N(), K_N(), K_N(), K_N(),
         }
     };
-    auto tap_dance_key_z = std::map<uint8_t, mkeybo::Keycode>{{255, H_K(HID_KEY_SHIFT_LEFT)}};
-    auto tap_dance_config = new mkeybo::KeyboardSettingsTapDanceRuleConfig({
-        {H_K(HID_KEY_Z), {{255, H_K(HID_KEY_SHIFT_LEFT)}} }
+    auto tap_dance_config = new mkeybo::KeyboardSettingsTapDanceRule({
+        {H_K(HID_KEY_Z), {{255, H_K(HID_KEY_SHIFT_LEFT)} } }
     });
     // clang-format on
     return new mkeybo::KeyboardSettings<switches_count>(
         "qwerty",
         {layout},
         {layer_down, layer_up},
-        {{"tap_dance", tap_dance_config}},
+        {{mkeybo::keyboard_settings_tap_dance_rule, tap_dance_config}},
         50, // switches_refresh_interval_ms
         50, // press_min_interval_ms
         150, // tap_dance_max_interval_ms
