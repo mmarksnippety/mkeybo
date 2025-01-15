@@ -64,10 +64,21 @@ public:
             // change from pressed to released
             if (event.pressed > 0)
             {
-                event.type = SwitchEventType::released;
-                event.pressed = 0;
-                event.released = 1;
-                event.hold = false;
+                // end of hold is end of everything
+                if (event.hold)
+                {
+                    event.type = SwitchEventType::idle;
+                    event.pressed = 0;
+                    event.released = 0;
+                    event.tap_dance = 0;
+                    event.hold = false;
+                } else
+                {
+                    event.type = SwitchEventType::released;
+                    event.pressed = 0;
+                    event.released = 1;
+                    event.hold = false;
+                }
                 return;
             }
             // change to tap_dance_end or idle (after hold no tap_dance_end)

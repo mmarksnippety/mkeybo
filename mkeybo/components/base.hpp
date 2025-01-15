@@ -44,10 +44,12 @@ struct Keycode
     uint16_t code{0};
 
     bool operator==(const Keycode& keycode) const = default;
+
     bool operator<(const Keycode& other) const
     {
         return type < other.type || (type == other.type && code < other.code);
     }
+
     [[nodiscard]] bool is_null() const { return type == KeycodeType::null; }
     [[nodiscard]] bool is_sentinel() const { return type == KeycodeType::sentinel; }
 };
@@ -120,25 +122,28 @@ struct UsbReport
     UsbReportStatus status{UsbReportStatus::draft};
 };
 
-struct UsbHidKeycodeReport: UsbReport {
+struct UsbHidKeycodeReport : UsbReport
+{
     uint8_t modifiers = 0;
     std::array<uint8_t, 6> keycodes{};
 };
 
-struct UsbCcKeycodeReport: UsbReport {
+struct UsbCcKeycodeReport : UsbReport
+{
     uint16_t keycode{};
 };
 
 /**
  * Received from usb host keyboard led status
  */
-struct LedStatus {
-    uint8_t num_lock : 1;    // Bit 0: Num Lock (1 bit)
-    uint8_t caps_lock : 1;   // Bit 1: Caps Lock (1 bit)
+struct LedStatus
+{
+    uint8_t num_lock : 1; // Bit 0: Num Lock (1 bit)
+    uint8_t caps_lock : 1; // Bit 1: Caps Lock (1 bit)
     uint8_t scroll_lock : 1; // Bit 2: Scroll Lock (1 bit)
-    uint8_t compose : 1;     // Bit 3: Compose (1 bit)
-    uint8_t kana : 1;        // Bit 4: Kana (1 bit)
-    uint8_t reserved : 3;    // Bits 5-7: Reserved (3 bits, must be zero)
+    uint8_t compose : 1; // Bit 3: Compose (1 bit)
+    uint8_t kana : 1; // Bit 4: Kana (1 bit)
+    uint8_t reserved : 3; // Bits 5-7: Reserved (3 bits, must be zero)
 };
 
 

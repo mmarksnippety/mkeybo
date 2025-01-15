@@ -65,8 +65,28 @@ public:
             }
             // wait for hold or tap_dance_end, or TODO: other key_pressed
             keycode_event.type = KeycodeEventType::canceled;
+            return;
+        }
+        if (switch_event.type == SwitchEventType::released)
+        {
+            auto other_key_pressed= std::ranges::any_of(keyboard_state->get_filtered_keycode_events_draft(), [&](auto& k_e)
+            {
+                if (k_e == keycode_event)
+                {
+                    return false;
+                }
+                auto sw_e = keyboard_state->get_switch_events()[k_e.switch_no];
+                return sw_e.type == SwitchEventType::pressed;
+            });
+            if (other_key_pressed)
+            {
+                this->finalize_keycode_event(keyboard_state, keycode_event);
+                return;
+            }
+            keycode_event.type = KeycodeEventType::canceled;
         }
         // just pass this keycode event
     }
 };
+
 }
