@@ -9,7 +9,7 @@
 void test_update_switch_event_stable_idle()
 {
     constexpr auto switches_count = 2;
-    auto k_settings = new mkeybo::KeyboardSettings<switches_count>("default", {}, {}, {});
+    const auto k_settings = new mkeybo::KeyboardSettings<switches_count>("default", {}, {}, {});
     std::cout << __func__ << "...";
     mkeybo::SwitchEvent sw_event{};
     mkeybo::SwitchEventsGenerator<switches_count> generator;
@@ -34,7 +34,7 @@ void test_update_switch_event_stable_idle()
 void test_update_switch_event_idle_press_release()
 {
     constexpr auto switches_count = 2;
-    auto k_settings = new mkeybo::KeyboardSettings<switches_count>("default", {}, {}, {});
+    const auto k_settings = new mkeybo::KeyboardSettings<switches_count>("default", {}, {}, {});
     std::cout << __func__ << "...";
     mkeybo::SwitchEvent sw_event{};
     mkeybo::SwitchEventsGenerator<switches_count> generator;
@@ -68,12 +68,19 @@ void test_update_switch_event_idle_press_release()
     assert(sw_event.hold == false);
     // 5. cycle
     generator.update_switch_event(k_settings, false, sw_event);
+    assert(sw_event.type == mkeybo::SwitchEventType::released);
+    assert(sw_event.released == 3);
+    assert(sw_event.pressed == 0);
+    assert(sw_event.tap_dance == 1);
+    assert(sw_event.hold == false);
+    // 6. cycle
+    generator.update_switch_event(k_settings, false, sw_event);
     assert(sw_event.type == mkeybo::SwitchEventType::tap_dance_end);
     assert(sw_event.released == 0);
     assert(sw_event.pressed == 0);
     assert(sw_event.tap_dance == 1);
     assert(sw_event.hold == false);
-    // 6. cycle
+    // 7. cycle
     generator.update_switch_event(k_settings, false, sw_event);
     assert(sw_event.type == mkeybo::SwitchEventType::idle);
     assert(sw_event.released == 0);
@@ -87,7 +94,7 @@ void test_update_switch_event_idle_press_release()
 void test_update_switch_event_idle_press_hold_release()
 {
     constexpr auto switches_count = 2;
-    auto k_settings = new mkeybo::KeyboardSettings<switches_count>("default", {}, {}, {});
+    const auto k_settings = new mkeybo::KeyboardSettings<switches_count>("default", {}, {}, {});
     std::cout << __func__ << "...";
     mkeybo::SwitchEvent sw_event{};
     mkeybo::SwitchEventsGenerator<switches_count> generator;
@@ -117,8 +124,8 @@ void test_update_switch_event_idle_press_hold_release()
     assert(sw_event.type == mkeybo::SwitchEventType::pressed);
     assert(sw_event.released == 0);
     assert(sw_event.pressed == 4);
-    assert(sw_event.tap_dance == 1);
-    assert(sw_event.hold == false);
+    assert(sw_event.tap_dance == 0);
+    assert(sw_event.hold == true);
     // 5. cycle
     generator.update_switch_event(k_settings, true, sw_event);
     assert(sw_event.type == mkeybo::SwitchEventType::pressed);
@@ -127,20 +134,6 @@ void test_update_switch_event_idle_press_hold_release()
     assert(sw_event.tap_dance == 0);
     assert(sw_event.hold == true);
     // 6. cycle
-    generator.update_switch_event(k_settings, false, sw_event);
-    assert(sw_event.type == mkeybo::SwitchEventType::released);
-    assert(sw_event.released == 1);
-    assert(sw_event.pressed == 0);
-    assert(sw_event.tap_dance == 0);
-    assert(sw_event.hold == false);
-    // 7. cycle
-    generator.update_switch_event(k_settings, false, sw_event);
-    assert(sw_event.type == mkeybo::SwitchEventType::released);
-    assert(sw_event.released == 2);
-    assert(sw_event.pressed == 0);
-    assert(sw_event.tap_dance == 0);
-    assert(sw_event.hold == false);
-    // 8. cycle
     generator.update_switch_event(k_settings, false, sw_event);
     assert(sw_event.type == mkeybo::SwitchEventType::idle);
     assert(sw_event.released == 0);
@@ -154,7 +147,7 @@ void test_update_switch_event_idle_press_hold_release()
 void test_update_switch_event_max_pressed_counter()
 {
     constexpr auto switches_count = 2;
-    auto k_settings = new mkeybo::KeyboardSettings<switches_count>("default", {}, {}, {});
+    const auto k_settings = new mkeybo::KeyboardSettings<switches_count>("default", {}, {}, {});
     std::cout << __func__ << "...";
     mkeybo::SwitchEvent sw_event{
         .pressed = std::numeric_limits<uint8_t>::max() - 1,
@@ -185,7 +178,7 @@ void test_update_switch_event_max_pressed_counter()
 void test_update_switch_event_keyboard_state()
 {
     constexpr auto switches_count = 2;
-    auto k_settings = new mkeybo::KeyboardSettings<switches_count>("default", {}, {}, {});
+    const auto k_settings = new mkeybo::KeyboardSettings<switches_count>("default", {}, {}, {});
     std::cout << __func__ << "...";
     mkeybo::KeyboardState<switches_count> keyboard_state;
     mkeybo::SwitchEventsGenerator<switches_count> generator;
