@@ -25,7 +25,7 @@ int main()
     test_update_switch_event_idle_press_hold_release();
     test_update_switch_event_max_pressed_counter();
     test_update_switch_event_keyboard_state();
-    // std::cout << "============" << std::endl;
+    std::cout << "============" << std::endl;
     test_keycode_event_buffer_push();
     test_keycode_event_buffer_get_filtered_events();
     test_keycode_event_buffer_get_filtered_events_only_one_type();
@@ -49,13 +49,13 @@ int main()
     test_key_mapper_map_idle();
     test_key_mapper_map_simple_key();
     test_key_mapper_map_with_layer_change(); // <==============
-    // std::cout << "============" << std::endl;
-    // test_hid_reporter_get_regular_keycodes();
-    // test_hid_reporter_get_modifier_keycodes();
-    // test_hid_reporter_generate_report_modifiers();
-    // test_hid_reporter_generate_report_keycodes();
+    std::cout << "============" << std::endl;
+    test_hid_reporter_get_regular_keycodes();
+    test_hid_reporter_get_modifier_keycodes();
+    test_hid_reporter_generate_report_modifiers();
+    test_hid_reporter_generate_report_keycodes();
     //TODO: test UsbCcReporter
-    // test_reporter_manager_generate_reports();
+    test_reporter_manager_generate_reports();
     std::cout << "============" << std::endl;
     std::cout << "passed" << std::endl;
     return 0;

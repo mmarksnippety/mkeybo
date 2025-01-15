@@ -16,9 +16,13 @@ void test_finalize_mapping_rule_map()
     const auto k_settings = k_settings_fixture<switches_count>();
     k_state->setup_for_settings(k_settings);
     std::cout << __func__ << "...";
+    auto& sw_events = k_state->get_switch_events();
     k_state->push_keycode_event_draft(H_K(10), 1);
-    k_state->push_keycode_event_draft(H_K(20), 1, mkeybo::KeycodeEventType::canceled);
-    k_state->push_keycode_event_draft(H_K(30), 1);
+    sw_events[1].type = mkeybo::SwitchEventType::pressed;
+    k_state->push_keycode_event_draft(H_K(20), 2, mkeybo::KeycodeEventType::canceled);
+    sw_events[2].type = mkeybo::SwitchEventType::pressed;
+    k_state->push_keycode_event_draft(H_K(30), 3);
+    sw_events[3].type = mkeybo::SwitchEventType::pressed;
     k_rule->map(k_settings, k_state);
     for (const auto& k_event : k_state->get_filtered_keycode_events_draft())
     {
