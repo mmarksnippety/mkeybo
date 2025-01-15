@@ -1,7 +1,7 @@
 #pragma once
 
 #include <array>
-#include "KeyboardState.hpp"
+#include "keyboard_state.hpp"
 #include "base.hpp"
 #include "tusb.h"
 
@@ -21,7 +21,11 @@ protected:
     virtual void send_report_(const UsbReport*) = 0;
 
 public:
-    explicit UsbReporter(const KeycodeType keycode_type) : keycode_type(keycode_type) {}
+    explicit UsbReporter(const KeycodeType keycode_type) :
+        keycode_type(keycode_type)
+    {
+    }
+
     virtual ~UsbReporter() = default;
 
     UsbReport* get_report(KeyboardState<switches_count>* keyboard_state)
@@ -59,7 +63,11 @@ class UsbReporterManager
     std::vector<UsbReporter<switches_count>*> reporters_;
 
 public:
-    explicit UsbReporterManager(const std::vector<UsbReporter<switches_count>*>& reporters) : reporters_(reporters) {}
+    explicit UsbReporterManager(const std::vector<UsbReporter<switches_count>*>& reporters) :
+        reporters_(reporters)
+    {
+    }
+
     ~UsbReporterManager()
     {
         for (auto reporter : reporters_)
@@ -112,11 +120,9 @@ public:
         auto reporters_end = reporters_.end();
         auto reports_it = keyboard_state->usb_reports.begin();
         auto reports_end = keyboard_state->usb_reports.end();
-        // std::pair<const KeycodeType, UsbReport*> report_pair{};
         while (reports_it != reports_end)
         {
-            auto report_pair = *reports_it;
-            if (report_pair.second->status == UsbReportStatus::ready)
+            if (auto report_pair = *reports_it; report_pair.second->status == UsbReportStatus::ready)
             {
                 auto reporter = *reporters_it;
                 reporter->send_report(report_pair.second);
@@ -142,7 +148,10 @@ class UsbHidKeycodeReporter final : public UsbReporter<switches_count>
     using UsbReporter<switches_count>::keycode_type;
 
 public:
-    explicit UsbHidKeycodeReporter() : UsbReporter<switches_count>(KeycodeType::hid) {}
+    explicit UsbHidKeycodeReporter() :
+        UsbReporter<switches_count>(KeycodeType::hid)
+    {
+    }
 
     void send_report_(const UsbReport* report) override
     {
@@ -165,7 +174,6 @@ public:
         generate_report_modifiers(get_modifiers_keycodes(keyboard_state), report);
         generate_report_keycodes(get_regular_keycodes(keyboard_state), report);
         report->status = UsbReportStatus::ready;
-        // std::cout << "UsbHidKeycodeReporter::generate_report:" << report << std::endl;
     }
 
     /**
@@ -188,8 +196,18 @@ public:
     {
         for (auto& keycode_event : modifiers_keycodes)
         {
-            auto bit_index = keycode_event.keycode.code - HID_KEY_CONTROL_LEFT;
-            report->modifiers |= 1 << bit_index;
+            // This special case taken from QMK. This coed is mixed modifiers bits and standard keycode
+            // first 8bit is a code, higher 8 bits is a modifier bits (no key code of ex shift key)
+            if (keycode_event.keycode.code >= std::numeric_limits<uint8_t>::max())
+            {
+                const auto modifier_bits = static_cast<uint8_t>(keycode_event.keycode.code >> 8);
+                report->modifiers |= modifier_bits;
+            }
+            else
+            {
+                auto bit_index = keycode_event.keycode.code - HID_KEY_CONTROL_LEFT;
+                report->modifiers |= 1 << bit_index;
+            }
         }
     }
 
@@ -205,7 +223,6 @@ public:
                 report->keycodes.fill(1);
                 break;
             }
-            // std::cout << "keycode_event.keycode.code: " << std::to_string(keycode_event.keycode.code) << std::endl;
             report->keycodes[keycode_index] = static_cast<uint8_t>(keycode_event.keycode.code);
             keycode_index++;
         }
@@ -213,16 +230,20 @@ public:
 
     auto get_regular_keycodes(KeyboardState<switches_count>* keyboard_state)
     {
-        return keyboard_state->get_keycode_events(keycode_type) |
+        return keyboard_state->get_filtered_keycode_events(keycode_type) |
             std::views::filter([](const auto& keycode_event)
-                               { return keycode_event.keycode.code < HID_KEY_CONTROL_LEFT; });
+            {
+                return static_cast<uint8_t>(keycode_event.keycode.code) < HID_KEY_CONTROL_LEFT;
+            });
     }
 
     auto get_modifiers_keycodes(KeyboardState<switches_count>* keyboard_state)
     {
-        return keyboard_state->get_keycode_events(keycode_type) |
+        return keyboard_state->get_filtered_keycode_events(keycode_type) |
             std::views::filter([](const auto& keycode_event)
-                               { return keycode_event.keycode.code >= HID_KEY_CONTROL_LEFT; });
+            {
+                return keycode_event.keycode.code >= HID_KEY_CONTROL_LEFT;
+            });
     }
 };
 
@@ -237,7 +258,10 @@ class UsbCcKeycodeReporter final : public UsbReporter<switches_count>
     using UsbReporter<switches_count>::keycode_type;
 
 public:
-    explicit UsbCcKeycodeReporter() : UsbReporter<switches_count>(KeycodeType::cc) {}
+    explicit UsbCcKeycodeReporter() :
+        UsbReporter<switches_count>(KeycodeType::cc)
+    {
+    }
 
     void send_report_(const UsbReport* report) override
     {
@@ -255,7 +279,7 @@ public:
         const auto report = reinterpret_cast<UsbCcKeycodeReport*>(this->get_report(keyboard_state));
         report->status = UsbReportStatus::draft;
         report->keycode = 0;
-        auto keycode_event_view = keyboard_state->get_keycode_events(keycode_type);
+        auto keycode_event_view = keyboard_state->get_filtered_keycode_events(keycode_type);
         auto keycode_event_it = keycode_event_view.begin();
         if (keycode_event_it != keycode_event_view.end())
         {

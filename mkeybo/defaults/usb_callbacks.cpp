@@ -1,12 +1,14 @@
 #include "config.hpp"
-#include "mkeybo/components/Keyboard.hpp"
+#include "mkeybo/components/keyboard.hpp"
+
+/**
+ * Implementation of callback defined in /external/pico-sdk/lib/tinyusb/src/device/usbd.h
+ * This set of callbacks are from keyboard (or other HID device) lifcycle
+ */
+
 
 extern mkeybo::Keyboard<keyboard_config.switches_count>* keyboard;
 
-
-/**
- * Device callback
- */
 
 void tud_mount_cb() { keyboard->on_usb_mount(); }
 

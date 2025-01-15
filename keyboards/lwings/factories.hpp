@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mkeybo/components/KeyboardSettings.hpp"
+#include "mkeybo/components/keyboard_settings.hpp"
 
 
 template <size_t switches_count>

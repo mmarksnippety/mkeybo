@@ -52,7 +52,7 @@ inline std::string_view get_switch_event_type_name(const SwitchEventType& type)
     }
 }
 
-inline std::string_view get_switch_keycode_event_type_name(const KeycodeEventType& type)
+inline std::string_view get_keycode_event_type_name(const KeycodeEventType& type)
 {
     switch (type)
     {
@@ -78,6 +78,20 @@ inline std::ostream& operator<<(std::ostream& out, const mkeybo::Keycode& keycod
 
 namespace mkeybo {
 
+
+template <size_t switches_count>
+void print_settings(KeyboardSettings<switches_count>* settings)
+{
+    std::cout << "Settings:" << std::endl;
+    std::cout << "switches_refresh_interval_ms: " << std::to_string(settings->switches_refresh_interval_ms) << std::endl;
+    std::cout << "press_min_interval_ms: " << std::to_string(settings->press_min_interval_ms) << std::endl;
+    std::cout << "tap_dance_max_interval_ms: " << std::to_string(settings->tap_dance_max_interval_ms) << std::endl;
+    std::cout << "hold_min_interval_ms: " << std::to_string(settings->hold_min_interval_ms) << std::endl;
+    std::cout << "report_send_interval_ms: " << std::to_string(settings->report_send_interval_ms) << std::endl;
+    std::cout << "press_min_interval_cycles: " << std::to_string(settings->press_min_interval_cycles) << std::endl;
+    std::cout << "tap_dance_max_interval_cycles: " << std::to_string(settings->tap_dance_max_interval_cycles) << std::endl;
+    std::cout << "hold_min_interval_cycles: " << std::to_string(settings->hold_min_interval_cycles) << std::endl;
+}
 
 inline void print_settings_rules_tap_dance(KeyboardSettingsTapDanceRuleConfig *tap_dance_settings)
 {

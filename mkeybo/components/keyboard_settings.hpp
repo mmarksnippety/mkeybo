@@ -62,6 +62,7 @@ struct KeyboardSettingsRule
 struct KeyboardSettingsTapDanceRuleConfig : KeyboardSettingsRule
 {
     std::map<Keycode, std::map<uint8_t, Keycode>> actions;
+
     explicit KeyboardSettingsTapDanceRuleConfig(const std::map<Keycode, std::map<uint8_t, Keycode>>& actions) :
         actions{actions}
     {
@@ -93,11 +94,13 @@ struct KeyboardSettings
                               const std::map<std::string, KeyboardSettingsRule*>& rules_,
                               const uint16_t switches_refresh_interval_ms_ = 50,
                               const uint16_t press_min_interval_ms_ = 50,
-                              const uint16_t tap_dance_max_interval_ms_ = 100,
-                              const uint16_t hold_min_interval_ms_ = 250) :
+                              const uint16_t tap_dance_max_interval_ms_ = 150,
+                              const uint16_t hold_min_interval_ms_ = 200,
+                              const uint16_t report_send_interval_ms_ = 10) :
         default_layout(std::move(default_layout_)), layouts(layouts_), layers(layers_), rules(rules_),
         switches_refresh_interval_ms(switches_refresh_interval_ms_), press_min_interval_ms(press_min_interval_ms_),
-        tap_dance_max_interval_ms(tap_dance_max_interval_ms_), hold_min_interval_ms(hold_min_interval_ms_)
+        tap_dance_max_interval_ms(tap_dance_max_interval_ms_), hold_min_interval_ms(hold_min_interval_ms_),
+        report_send_interval_ms(report_send_interval_ms_)
     {
         press_min_interval_cycles = static_cast<uint8_t>(press_min_interval_ms / switches_refresh_interval_ms);
         tap_dance_max_interval_cycles = static_cast<uint8_t>(tap_dance_max_interval_ms / switches_refresh_interval_ms);

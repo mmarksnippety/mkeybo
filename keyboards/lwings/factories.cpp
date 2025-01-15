@@ -1,7 +1,7 @@
 #include "mkeybo/factories.hpp"
 #include "config.hpp"
 #include "factories.hpp"
-#include "mkeybo/components/KeyboardSettings.hpp"
+#include "mkeybo/components/keyboard_settings.hpp"
 #include "mkeybo/components/base.hpp"
 #include "tusb.h"
 
@@ -60,8 +60,17 @@ auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
         {H_K(HID_KEY_Z), {{255, H_K(HID_KEY_SHIFT_LEFT)}} }
     });
     // clang-format on
-    return new mkeybo::KeyboardSettings<switches_count>("qwerty", {layout}, {layer_down, layer_up},
-                                                        {{"tap_dance", tap_dance_config}});
+    return new mkeybo::KeyboardSettings<switches_count>(
+        "qwerty",
+        {layout},
+        {layer_down, layer_up},
+        {{"tap_dance", tap_dance_config}},
+        50, // switches_refresh_interval_ms
+        50, // press_min_interval_ms
+        150, // tap_dance_max_interval_ms
+        200, // hold_min_interval_ms
+        10 // usb report interval
+        );
 }
 
 

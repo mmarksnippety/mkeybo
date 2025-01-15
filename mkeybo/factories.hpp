@@ -1,8 +1,14 @@
 #pragma once
-#include "components/UsbReporter.hpp"
-#include "mkeybo/components/KeyMapper.hpp"
-#include "mkeybo/components/SwitchEvents.hpp"
-#include "mkeybo/components/SwitchReaderMatrix.hpp"
+
+#include "components/usb_reporter.hpp"
+#include "components/key_mapper.hpp"
+#include "components/key_mapper/change_layer_mapping_rule.hpp"
+#include "components/key_mapper/change_layout_mapping_rule.hpp"
+#include "components/key_mapper/default_mapping_rule.hpp"
+#include "components/key_mapper/finalize_mapping_rule.hpp"
+#include "components/key_mapper/tap_dance_mapping_rule.hpp"
+#include "mkeybo/components/switch_events.hpp"
+#include "mkeybo/components/switch_reader_matrix.hpp"
 #include "mkeybo/components/base.hpp"
 #include "tusb.h"
 
@@ -65,10 +71,11 @@ template <size_t switches_count>
 KeyMapper<switches_count>* create_key_mapper()
 {
     return new KeyMapper<switches_count>({
-        new DefaultMappingRule<switches_count>(),
-        new TapDanceMappingRule<switches_count>(),
-        new ChangeLayoutMappingRule<switches_count>(),
-        new ChangeLayerMappingRule<switches_count>(),
+        new key_mapper::DefaultMappingRule<switches_count>{},
+        new key_mapper::TapDanceMappingRule<switches_count>{},
+        new key_mapper::ChangeLayoutMappingRule<switches_count>{},
+        new key_mapper::ChangeLayerMappingRule<switches_count>{},
+        new key_mapper::FinalizeMappingRule<switches_count>{},
     });
 }
 
@@ -76,8 +83,8 @@ template <size_t switches_count>
 UsbReporterManager<switches_count>* create_usb_reporter_manager()
 {
     return new UsbReporterManager<switches_count>({
-        new UsbHidKeycodeReporter<switches_count>(),
-        new UsbCcKeycodeReporter<switches_count>()
+        new UsbHidKeycodeReporter<switches_count>{},
+        new UsbCcKeycodeReporter<switches_count>{}
     });
 }
 

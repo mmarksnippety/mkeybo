@@ -1,5 +1,5 @@
 #include "config.hpp"
-#include "mkeybo/components/Keyboard.hpp"
+#include "mkeybo/components/keyboard.hpp"
 #include "mkeybo/components/base.hpp"
 #include "tusb.h"
 
@@ -8,9 +8,14 @@ extern mkeybo::Keyboard<keyboard_config.switches_count>* keyboard;
 
 /**
  * Implementation of callback defined in /external/pico-sdk/lib/tinyusb/src/device/usbd.h
+ * This set of callback are connected with device handshake process
  */
 
 /**
+ * Device descriptor
+ * link to learn what a set of parameters is:
+ * https://www.beyondlogic.org/usbnutshell/usb5.shtml#DeviceDescriptors
+ *
  * A combination of interfaces must have a unique product id, since PC will save device driver after the
  * first plug. Same VID/PID with different interface e.g MSC (first), then CDC (later) will possibly cause
  * system error on PC.
@@ -21,29 +26,25 @@ extern mkeybo::Keyboard<keyboard_config.switches_count>* keyboard;
 #define _PID_MAP(itf, n) ((CFG_TUD_##itf) << (n))
 #define USB_PID                                                                                                        \
     (0x4000 | _PID_MAP(CDC, 0) | _PID_MAP(MSC, 1) | _PID_MAP(HID, 2) | _PID_MAP(MIDI, 3) | _PID_MAP(VENDOR, 4))
-
 #define USB_VID 0x1209
-#define USB_BCD 0x0201
-// #define USB_VID   0xCafe
-// #define USB_BCD   0x0200
+#define USB_BCD 0x0200
 
-//--------------------------------------------------------------------+
-// Device Descriptors
-//--------------------------------------------------------------------+
-constexpr tusb_desc_device_t desc_device = {.bLength = sizeof(tusb_desc_device_t),
-                                            .bDescriptorType = TUSB_DESC_DEVICE,
-                                            .bcdUSB = USB_BCD,
-                                            .bDeviceClass = 0x00,
-                                            .bDeviceSubClass = 0x00,
-                                            .bDeviceProtocol = 0x00,
-                                            .bMaxPacketSize0 = CFG_TUD_ENDPOINT0_SIZE,
-                                            .idVendor = USB_VID,
-                                            .idProduct = USB_PID,
-                                            .bcdDevice = 0x0100,
-                                            .iManufacturer = 0x01,
-                                            .iProduct = 0x02,
-                                            .iSerialNumber = 0x03,
-                                            .bNumConfigurations = 0x01};
+constexpr tusb_desc_device_t desc_device = {
+    .bLength = sizeof(tusb_desc_device_t),
+    .bDescriptorType = TUSB_DESC_DEVICE,
+    .bcdUSB = USB_BCD,
+    .bDeviceClass = 0x00,
+    .bDeviceSubClass = 0x00,
+    .bDeviceProtocol = 0x00,
+    .bMaxPacketSize0 = CFG_TUD_ENDPOINT0_SIZE,
+    .idVendor = USB_VID,
+    .idProduct = USB_PID,
+    .bcdDevice = 0x0100,
+    .iManufacturer = 0x01,
+    .iProduct = 0x02,
+    .iSerialNumber = 0x03,
+    .bNumConfigurations = 0x01
+};
 
 // Invoked when received GET DEVICE DESCRIPTOR
 // Application return pointer to descriptor
@@ -93,17 +94,19 @@ uint8_t desc_other_speed_config[CONFIG_TOTAL_LEN];
 
 // device qualifier is mostly similar to device descriptor
 // since we don't change configuration based on speed
-tusb_desc_device_qualifier_t const desc_device_qualifier = {.bLength = sizeof(tusb_desc_device_qualifier_t),
-                                                            .bDescriptorType = TUSB_DESC_DEVICE_QUALIFIER,
-                                                            .bcdUSB = USB_BCD,
+tusb_desc_device_qualifier_t const desc_device_qualifier = {
+    .bLength = sizeof(tusb_desc_device_qualifier_t),
+    .bDescriptorType = TUSB_DESC_DEVICE_QUALIFIER,
+    .bcdUSB = USB_BCD,
 
-                                                            .bDeviceClass = 0x00,
-                                                            .bDeviceSubClass = 0x00,
-                                                            .bDeviceProtocol = 0x00,
+    .bDeviceClass = 0x00,
+    .bDeviceSubClass = 0x00,
+    .bDeviceProtocol = 0x00,
 
-                                                            .bMaxPacketSize0 = CFG_TUD_ENDPOINT0_SIZE,
-                                                            .bNumConfigurations = 0x01,
-                                                            .bReserved = 0x00};
+    .bMaxPacketSize0 = CFG_TUD_ENDPOINT0_SIZE,
+    .bNumConfigurations = 0x01,
+    .bReserved = 0x00
+};
 
 // Invoked when received GET DEVICE QUALIFIER DESCRIPTOR request
 // Application return pointer to descriptor, whose contents must exist long enough for transfer to complete.

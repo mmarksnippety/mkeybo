@@ -8,6 +8,7 @@
 #include "keyboard.hpp"
 #include "mkeybo/debug.hpp"
 #include "pico/stdlib.h"
+#include <algorithm>
 
 
 mkeybo::Keyboard<keyboard_config.switches_count>* keyboard{};
@@ -39,20 +40,45 @@ void print_logo()
 }
 
 
+bool is_any_info_to_print()
+{
+    bool is_any_info_to_print = false;
+    is_any_info_to_print |= std::ranges::any_of(keyboard->get_state()->get_switch_events(), [](const auto& sw_event)
+    {
+        return sw_event.type != mkeybo::SwitchEventType::idle;
+    });
+    is_any_info_to_print |= !keyboard->get_state()->get_filtered_keycode_events().empty();
+    is_any_info_to_print |= std::ranges::any_of(keyboard->get_state()->get_usb_reports(), [](const auto& report)
+    {
+        return report.second->status == mkeybo::UsbReportStatus::ready;
+    });
+    return is_any_info_to_print;
+}
+
 void print_keyboard_info()
 {
-    const bool print_status = !std::ranges::empty(keyboard->get_state()->get_keycode_events()) ||
-        keyboard->get_usb_reporter_manager()->is_any_report_ready(keyboard->get_state());
-    if (print_status)
+    if (!is_any_info_to_print()) return;
+    std::cout << std::endl << std::endl;
+    for (auto index = 0; const auto& sw_event : keyboard->get_state()->get_switch_events())
     {
-        std::cout << "--------------------------" << std::endl;
+        if (sw_event.type != mkeybo::SwitchEventType::idle)
+        {
+            std::cout << "switch|" << std::to_string(index++) << "|"
+                << mkeybo::get_switch_event_type_name(sw_event.type) << "|"
+                << "p=" << std::to_string(sw_event.pressed) << "|"
+                << "r=" << std::to_string(sw_event.released) << "|"
+                << "td=" << std::to_string(sw_event.tap_dance) << "|"
+                << "h=" << std::boolalpha << sw_event.hold
+                << std::endl;
+        }
+        index++;
     }
-    for (auto& key_event : keyboard->get_state()->get_keycode_events())
+    for (auto& key_event : keyboard->get_state()->get_filtered_keycode_events())
     {
-        std::cout << "event|" << mkeybo::get_switch_keycode_event_type_name(key_event.type) << "|" << key_event.keycode
-                  << std::endl;
+        std::cout << "event|" << mkeybo::get_keycode_event_type_name(key_event.type) << "|" << key_event.keycode
+            << std::endl;
     }
-    for (const auto& [keycode_type, report] : keyboard->get_state()->get_reports())
+    for (const auto& [keycode_type, report] : keyboard->get_state()->get_usb_reports())
     {
         if (keycode_type == mkeybo::KeycodeType::hid && report->status == mkeybo::UsbReportStatus::ready)
         {
@@ -64,10 +90,6 @@ void print_keyboard_info()
             }
             std::cout << "|" << std::endl;
         }
-    }
-    if (print_status)
-    {
-        std::cout << "==========================" << std::endl;
     }
 }
 
@@ -116,7 +138,7 @@ void keyboard_hid_task()
     keyboard = new Keyboard<keyboard_config.switches_count>();
     keyboard->update_settings(create_keyboard_settings<keyboard_config.switches_count>());
     std::cout << "UniqueID: " << keyboard->get_unique_id() << std::endl;
-    std::cout << "Settings:" << std::endl;
+    print_settings(keyboard->get_settings());
     print_settings_rules(keyboard->get_settings()->rules);
     std::cout << std::endl;
     std::cout << std::endl;
