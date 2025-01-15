@@ -15,15 +15,16 @@ template <size_t switches_count>
 class TapDanceMappingRule final : public BaseMappingRule<switches_count>
 {
 public:
+
     bool map(KeyboardSettings<switches_count>* keyboard_settings,
              KeyboardState<switches_count>* keyboard_state) override
     {
-        auto rule_settings = keyboard_settings->rules.find("tap_dance");
-        if (rule_settings == keyboard_settings->rules.end())
+        const auto tap_dance_settings = get_rule_settings<KeyboardSettingsTapDanceRule, switches_count>(
+            keyboard_settings, keyboard_settings_tap_dance_rule);
+        if (!tap_dance_settings)
         {
             return false;
         }
-        const auto tap_dance_settings = reinterpret_cast<KeyboardSettingsTapDanceRuleConfig*>(rule_settings->second);
         for (auto& keycode_event : keyboard_state->get_all_keycode_events_draft())
         {
             if (auto const actions = tap_dance_settings->actions.find(keycode_event.keycode);
@@ -39,7 +40,7 @@ public:
                    const std::map<uint8_t, Keycode>& actions)
     {
         auto switch_event = keyboard_state->get_switch_events()[keycode_event.switch_no];
-        // emit keycode at end of tapdance
+        // finalize keycode at end of tapdance
         if (switch_event.type == SwitchEventType::tap_dance_end)
         {
             if (auto const action = actions.find(switch_event.tap_dance); action != actions.end())
@@ -49,11 +50,11 @@ public:
             this->finalize_keycode_event(keyboard_state, keycode_event);
             return;
         }
+        const auto hold_action = actions.find(tap_dance_hold_action);
+        const auto has_hold_action = hold_action != actions.end();
         // pressed
         if (switch_event.type == SwitchEventType::pressed)
         {
-            const auto hold_action = actions.find(tap_dance_hold_action);
-            const auto has_hold_action = hold_action != actions.end();
             if (switch_event.hold)
             {
                 if (has_hold_action)
@@ -69,16 +70,8 @@ public:
         }
         if (switch_event.type == SwitchEventType::released)
         {
-            auto other_key_pressed= std::ranges::any_of(keyboard_state->get_filtered_keycode_events_draft(), [&](auto& k_e)
-            {
-                if (k_e == keycode_event)
-                {
-                    return false;
-                }
-                auto sw_e = keyboard_state->get_switch_events()[k_e.switch_no];
-                return sw_e.type == SwitchEventType::pressed;
-            });
-            if (other_key_pressed)
+            bool has_only_hold_action = has_hold_action && actions.size() == 1;
+            if (is_other_key_pressed(keyboard_state, keycode_event) || has_only_hold_action)
             {
                 this->finalize_keycode_event(keyboard_state, keycode_event);
                 return;
@@ -86,6 +79,17 @@ public:
             keycode_event.type = KeycodeEventType::canceled;
         }
         // just pass this keycode event
+    }
+
+    bool is_other_key_pressed(KeyboardState<switches_count>* keyboard_state, KeycodeEvent& keycode_event)
+    {
+        return std::ranges::any_of(keyboard_state->get_filtered_keycode_events_draft(),
+                                   [&](auto& k_e)
+                                   {
+                                       if (k_e == keycode_event) { return false; }
+                                       return keyboard_state->get_switch_events()[k_e.switch_no].type ==
+                                           SwitchEventType::pressed;
+                                   });
     }
 };
 

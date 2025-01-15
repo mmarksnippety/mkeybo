@@ -93,7 +93,7 @@ void print_settings(KeyboardSettings<switches_count>* settings)
     std::cout << "hold_min_interval_cycles: " << std::to_string(settings->hold_min_interval_cycles) << std::endl;
 }
 
-inline void print_settings_rules_tap_dance(KeyboardSettingsTapDanceRuleConfig *tap_dance_settings)
+inline void print_settings_rules_tap_dance(KeyboardSettingsTapDanceRule *tap_dance_settings)
 {
     for (auto& [trigger_keycode, actions] : tap_dance_settings->actions)
     {
@@ -113,7 +113,7 @@ inline void print_settings_rules(const std::map<std::string, KeyboardSettingsRul
         std::cout << name << std::endl;
         if (name == "tap_dance")
         {
-            const auto tap_dance_settings = reinterpret_cast<KeyboardSettingsTapDanceRuleConfig*>(settings);
+            const auto tap_dance_settings = reinterpret_cast<KeyboardSettingsTapDanceRule*>(settings);
             print_settings_rules_tap_dance(tap_dance_settings);
         }
     }

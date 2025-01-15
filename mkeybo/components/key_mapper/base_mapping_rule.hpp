@@ -10,7 +10,6 @@ namespace mkeybo::key_mapper {
 template <size_t switches_count>
 class BaseMappingRule
 {
-
 public:
     BaseMappingRule() = default;
     virtual ~BaseMappingRule() = default;
