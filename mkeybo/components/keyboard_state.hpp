@@ -98,7 +98,7 @@ public:
 
     bool is_layer_active(const uint8_t layer_index) { return active_layers_[layer_index]; }
 
-    bool is_layer_changed() const { return active_layers_prev_cycle_ != active_layers_; }
+    [[nodiscard]] bool is_layer_changed() const { return active_layers_prev_cycle_ != active_layers_; }
 
     /**
      * Layout
@@ -110,7 +110,7 @@ public:
 
     auto get_active_layout() { return active_layout_; }
 
-    bool is_layout_changed() const { return active_layout_prev_cycle_ != active_layout_; }
+    [[nodiscard]] bool is_layout_changed() const { return active_layout_prev_cycle_ != active_layout_; }
 
     /**
      * Switch state
