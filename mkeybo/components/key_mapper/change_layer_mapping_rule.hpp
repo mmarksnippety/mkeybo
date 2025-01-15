@@ -21,9 +21,9 @@ public:
             if (!keyboard_state->is_layer_active(keycode_event.keycode.code))
             {
                 keyboard_state->set_active_layer(keycode_event.keycode.code);
-                keycode_event.type = KeycodeEventType::canceled;
                 layer_changed = true;
             }
+            keycode_event.type = KeycodeEventType::canceled;
         }
         return layer_changed;
     }

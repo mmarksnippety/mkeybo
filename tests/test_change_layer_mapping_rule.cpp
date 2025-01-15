@@ -2,7 +2,6 @@
 #include "fixtures.hpp"
 #include <cassert>
 #include <iostream>
-#include <ranges>
 #include "mkeybo/components/keyboard_settings.hpp"
 #include "mkeybo/components/base.hpp"
 #include "mkeybo/components/key_mapper.hpp"
