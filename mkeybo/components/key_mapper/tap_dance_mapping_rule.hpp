@@ -3,6 +3,7 @@
 #include <limits>
 #include <map>
 #include "../keyboard_settings.hpp"
+#include "../keyboard_rule_settings/tap_dance_rule_settings.hpp"
 #include "../keyboard_state.hpp"
 #include "../base.hpp"
 #include "base_mapping_rule.hpp"
@@ -15,12 +16,11 @@ template <size_t switches_count>
 class TapDanceMappingRule final : public BaseMappingRule<switches_count>
 {
 public:
-
     bool map(KeyboardSettings<switches_count>* keyboard_settings,
              KeyboardState<switches_count>* keyboard_state) override
     {
-        const auto tap_dance_settings = get_rule_settings<KeyboardSettingsTapDanceRule, switches_count>(
-            keyboard_settings, keyboard_settings_tap_dance_rule);
+        const auto tap_dance_settings = get_rule_settings<keyboard_rule_settings::TapDanceRuleSettings, switches_count>(
+            keyboard_settings, keyboard_rule_settings::rule_name_tap_dance);
         if (!tap_dance_settings)
         {
             return false;

@@ -1,13 +1,12 @@
 #pragma once
 
 #include <array>
-#include <cstdint>
 #include <map>
-#include <ranges>
 #include <string>
-#include <utility>
 #include <vector>
+#include <ranges>
 #include "base.hpp"
+#include "keyboard_rule_settings/base_rule_settings.hpp"
 
 
 namespace mkeybo {
@@ -55,17 +54,13 @@ struct KeyboardSettingsLayer
     std::array<Keycode, switches_count> keycodes;
 };
 
-struct KeyboardSettingsRule
-{
-};
-
 template <size_t switches_count>
 struct KeyboardSettings
 {
     std::string default_layout;
     std::vector<KeyboardSettingsLayer<switches_count>*> layouts;
     std::vector<KeyboardSettingsLayer<switches_count>*> layers;
-    std::map<std::string, KeyboardSettingsRule*> rules;
+    std::map<std::string, keyboard_rule_settings::BaseRuleSettings*> rules;
 
     uint16_t switches_refresh_interval_ms{50};
     uint16_t press_min_interval_ms{50};
@@ -81,7 +76,7 @@ struct KeyboardSettings
     explicit KeyboardSettings(std::string default_layout_,
                               const std::vector<KeyboardSettingsLayer<switches_count>*>& layouts_,
                               const std::vector<KeyboardSettingsLayer<switches_count>*>& layers_,
-                              const std::map<std::string, KeyboardSettingsRule*>& rules_,
+                              const std::map<std::string, keyboard_rule_settings::BaseRuleSettings*>& rules_,
                               const uint16_t switches_refresh_interval_ms_ = 50,
                               const uint16_t press_min_interval_ms_ = 50,
                               const uint16_t tap_dance_max_interval_ms_ = 150,
@@ -113,31 +108,6 @@ struct KeyboardSettings
         }
     }
 };
-
-// specific rule settings
-
-struct KeyboardSettingsTapDanceRule : KeyboardSettingsRule
-{
-    std::map<Keycode, std::map<uint8_t, Keycode>> actions;
-
-    explicit KeyboardSettingsTapDanceRule(const std::map<Keycode, std::map<uint8_t, Keycode>>& actions) :
-        actions{actions}
-    {
-    }
-};
-
-struct KeyboardSettingsMultiMappingRule : KeyboardSettingsRule
-{
-    std::vector<std::pair<std::vector<Keycode>, Keycode>> actions;
-
-    explicit KeyboardSettingsMultiMappingRule(const std::vector<std::pair<std::vector<Keycode>, Keycode>>& actions) :
-        actions{actions}
-    {
-    }
-};
-
-inline std::string keyboard_settings_tap_dance_rule = "tap_dance";
-inline std::string keyboard_settings_multi_mapping_rule = "multi_mapping";
 
 template <class RuleSettings, size_t switches_count>
 RuleSettings* get_rule_settings(KeyboardSettings<switches_count>* keyboard_settings, const std::string& rule_name)

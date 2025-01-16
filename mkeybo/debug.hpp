@@ -2,6 +2,10 @@
 
 #include <iostream>
 #include "mkeybo/components/base.hpp"
+#include "mkeybo/components/keyboard_rule_settings/tap_dance_rule_settings.hpp"
+
+
+inline std::ostream& operator<<(std::ostream& out, const mkeybo::Keycode& keycode);
 
 
 namespace mkeybo {
@@ -67,33 +71,23 @@ inline std::string_view get_keycode_event_type_name(const KeycodeEventType& type
     }
 }
 
-} // namespace mkeybo
-
-
-inline std::ostream& operator<<(std::ostream& out, const mkeybo::Keycode& keycode)
-{
-    out << mkeybo::get_keycode_type_name(keycode.type) << "|" << keycode.code;
-    return out;
-}
-
-namespace mkeybo {
-
-
 template <size_t switches_count>
 void print_settings(KeyboardSettings<switches_count>* settings)
 {
     std::cout << "Settings:" << std::endl;
-    std::cout << "switches_refresh_interval_ms: " << std::to_string(settings->switches_refresh_interval_ms) << std::endl;
+    std::cout << "switches_refresh_interval_ms: " << std::to_string(settings->switches_refresh_interval_ms) <<
+        std::endl;
     std::cout << "press_min_interval_ms: " << std::to_string(settings->press_min_interval_ms) << std::endl;
     std::cout << "tap_dance_max_interval_ms: " << std::to_string(settings->tap_dance_max_interval_ms) << std::endl;
     std::cout << "hold_min_interval_ms: " << std::to_string(settings->hold_min_interval_ms) << std::endl;
     std::cout << "report_send_interval_ms: " << std::to_string(settings->report_send_interval_ms) << std::endl;
     std::cout << "press_min_interval_cycles: " << std::to_string(settings->press_min_interval_cycles) << std::endl;
-    std::cout << "tap_dance_max_interval_cycles: " << std::to_string(settings->tap_dance_max_interval_cycles) << std::endl;
+    std::cout << "tap_dance_max_interval_cycles: " << std::to_string(settings->tap_dance_max_interval_cycles) <<
+        std::endl;
     std::cout << "hold_min_interval_cycles: " << std::to_string(settings->hold_min_interval_cycles) << std::endl;
 }
 
-inline void print_settings_rules_tap_dance(KeyboardSettingsTapDanceRule *tap_dance_settings)
+inline void print_settings_rules_tap_dance(keyboard_rule_settings::TapDanceRuleSettings* tap_dance_settings)
 {
     for (auto& [trigger_keycode, actions] : tap_dance_settings->actions)
     {
@@ -105,19 +99,24 @@ inline void print_settings_rules_tap_dance(KeyboardSettingsTapDanceRule *tap_dan
     }
 }
 
-
-inline void print_settings_rules(const std::map<std::string, KeyboardSettingsRule*>& rules)
+inline void print_settings_rules(std::map<std::string, keyboard_rule_settings::BaseRuleSettings*> rules)
 {
     for (auto& [name, settings] : rules)
     {
         std::cout << name << std::endl;
         if (name == "tap_dance")
         {
-            const auto tap_dance_settings = reinterpret_cast<KeyboardSettingsTapDanceRule*>(settings);
+            const auto tap_dance_settings = reinterpret_cast<keyboard_rule_settings::TapDanceRuleSettings*>(settings);
             print_settings_rules_tap_dance(tap_dance_settings);
         }
     }
 }
 
 
+}
+
+inline std::ostream& operator<<(std::ostream& out, const mkeybo::Keycode& keycode)
+{
+    out << mkeybo::get_keycode_type_name(keycode.type) << "|" << keycode.code;
+    return out;
 }

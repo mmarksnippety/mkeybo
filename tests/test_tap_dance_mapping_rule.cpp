@@ -3,6 +3,7 @@
 #include <iostream>
 #include "fixtures.hpp"
 #include "mkeybo/components/keyboard_settings.hpp"
+#include "mkeybo/components/keyboard_rule_settings/tap_dance_rule_settings.hpp"
 #include "mkeybo/components/base.hpp"
 #include "mkeybo/factories.hpp"
 #include "mkeybo/components/key_mapper.hpp"
@@ -15,7 +16,8 @@ void test_tap_dance_mapping_rule_map_event_tap_dance_end()
     const auto k_state = new mkeybo::KeyboardState<switches_count>();
     const auto k_settings = k_settings_fixture<switches_count>();
     std::map<uint8_t, mkeybo::Keycode> tap_dance_map{{2, H_K(10)}};
-    k_settings->rules.insert({"tap_dance", new mkeybo::KeyboardSettingsTapDanceRuleConfig({{H_K(1), tap_dance_map}})});
+    k_settings->rules.insert({mkeybo::keyboard_rule_settings::rule_name_tap_dance,
+                              new mkeybo::keyboard_rule_settings::TapDanceRuleSettings({{H_K(1), tap_dance_map}})});
     k_state->setup_for_settings(k_settings);
     const auto k_rule = new mkeybo::key_mapper::TapDanceMappingRule<switches_count>();
     auto& switch_events = k_state->get_switch_events();
@@ -43,7 +45,8 @@ void test_tap_dance_mapping_rule_map_event_tap_dance_end_with_action()
     const auto k_state = new mkeybo::KeyboardState<switches_count>();
     const auto k_settings = k_settings_fixture<switches_count>();
     std::map<uint8_t, mkeybo::Keycode> tap_dance_map{{2, H_K(10)}};
-    k_settings->rules.insert({"tap_dance", new mkeybo::KeyboardSettingsTapDanceRuleConfig({{H_K(1), tap_dance_map}})});
+    k_settings->rules.insert({mkeybo::keyboard_rule_settings::rule_name_tap_dance,
+                              new mkeybo::keyboard_rule_settings::TapDanceRuleSettings({{H_K(1), tap_dance_map}})});
     k_state->setup_for_settings(k_settings);
     const auto k_rule = new mkeybo::key_mapper::TapDanceMappingRule<switches_count>();
     auto& switch_events = k_state->get_switch_events();
@@ -70,9 +73,11 @@ void test_tap_dance_mapping_rule_map_event_press_hold()
     constexpr auto switches_count = 4;
     const auto k_state = new mkeybo::KeyboardState<switches_count>();
     const auto k_settings = k_settings_fixture<switches_count>();
-    const std::map<uint8_t, mkeybo::Keycode> tap_dance_map{{2, H_K(10)},
-                                                           {mkeybo::key_mapper::tap_dance_hold_action, H_K(20)}};
-    k_settings->rules.insert({"tap_dance", new mkeybo::KeyboardSettingsTapDanceRuleConfig({{H_K(1), tap_dance_map}})});
+    const std::map<uint8_t, mkeybo::Keycode> tap_dance_map{
+        {2, H_K(10)},
+        {mkeybo::key_mapper::tap_dance_hold_action, H_K(20)}};
+    k_settings->rules.insert({mkeybo::keyboard_rule_settings::rule_name_tap_dance,
+                              new mkeybo::keyboard_rule_settings::TapDanceRuleSettings({{H_K(1), tap_dance_map}})});
     k_state->setup_for_settings(k_settings);
     const auto k_rule = new mkeybo::key_mapper::TapDanceMappingRule<switches_count>();
     auto& switch_events = k_state->get_switch_events();
@@ -100,7 +105,8 @@ void test_tap_dance_mapping_rule_map_event_press()
     const auto k_state = new mkeybo::KeyboardState<switches_count>();
     const auto k_settings = k_settings_fixture<switches_count>();
     const std::map<uint8_t, mkeybo::Keycode> tap_dance_map{{2, H_K(10)}, {3, H_K(20)}};
-    k_settings->rules.insert({"tap_dance", new mkeybo::KeyboardSettingsTapDanceRuleConfig({{H_K(1), tap_dance_map}})});
+    k_settings->rules.insert({mkeybo::keyboard_rule_settings::rule_name_tap_dance,
+                              new mkeybo::keyboard_rule_settings::TapDanceRuleSettings({{H_K(1), tap_dance_map}})});
     k_state->setup_for_settings(k_settings);
     const auto k_rule = new mkeybo::key_mapper::TapDanceMappingRule<switches_count>();
     auto& switch_events = k_state->get_switch_events();
