@@ -1,6 +1,5 @@
 #include <array>
 #include <iostream>
-#include <numeric>
 #include <string_view>
 #include "bsp/board_api.h"
 #include "config.hpp"
@@ -138,8 +137,8 @@ void keyboard_hid_task()
     keyboard = new Keyboard<keyboard_config.switches_count>();
     keyboard->update_settings(create_keyboard_settings<keyboard_config.switches_count>());
     std::cout << "UniqueID: " << keyboard->get_unique_id() << std::endl;
-    print_settings(keyboard->get_settings());
-    print_settings_rules(keyboard->get_settings()->rules);
+    mkeybo::print_settings(keyboard->get_settings());
+    mkeybo::print_settings_rules(keyboard->get_settings()->rules);
     std::cout << std::endl;
     std::cout << std::endl;
     // main loop
