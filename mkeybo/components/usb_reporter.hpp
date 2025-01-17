@@ -41,12 +41,7 @@ public:
 
     auto get_keycode_events(KeyboardState<switches_count>* keyboard_state, KeycodeEventPriority priority)
     {
-        return std::views::filter(keyboard_state->get_filtered_keycode_events(keycode_type),
-                                  [priority](const auto& keycode_event)
-                                  {
-                                      return keycode_event.type == KeycodeEventType::finalized && keycode_event.
-                                          priority == priority;
-                                  });
+        return keyboard_state->get_filtered_keycode_events(keycode_type, KeycodeEventType::finalized, priority);
     }
 
     virtual void generate_empty_record(KeyboardState<switches_count>* keyboard_state) = 0;
@@ -303,7 +298,7 @@ public:
     }
 
     template <typename R>
-    void generate_report_(R&& keycodes_views, UsbCcKeycodeReport* report )
+    void generate_report_(R&& keycodes_views, UsbCcKeycodeReport* report)
     {
         auto keycode_event_it = keycodes_views.begin();
         if (keycode_event_it != keycodes_views.end())

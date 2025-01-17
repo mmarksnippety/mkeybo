@@ -113,21 +113,18 @@ public:
 
     auto& get_all_keycode_events() { return keycode_events_.get_all_events(); }
 
-    auto get_filtered_keycode_events(const KeycodeType keycode_type)
+    auto get_filtered_keycode_events(const std::optional<KeycodeType> keycode_type = std::nullopt,
+                                     const std::optional<KeycodeEventType> keycode_event_type = std::nullopt,
+                                     const std::optional<KeycodeEventPriority> keycode_event_priority = std::nullopt)
     {
-        return keycode_events_.get_filtered_events(keycode_type);
+        return keycode_events_.get_filtered_events(keycode_type, keycode_event_type, keycode_event_priority);
     }
-
-    auto get_filtered_keycode_events() { return keycode_events_.get_filtered_events(); }
 
     bool have_keycode_events_changed(const KeycodeType& keycode_type)
     {
         return !std::ranges::equal(
-            std::views::filter(keycode_events_.get_filtered_events(keycode_type), [&](const auto& keycode_event)
-            {
-                return keycode_event.type == KeycodeEventType::finalized;
-            }),
-            keycode_events_prev_cycle_.get_filtered_events(keycode_type));
+            keycode_events_.get_filtered_events(keycode_type, KeycodeEventType::finalized),
+            keycode_events_prev_cycle_.get_filtered_events(keycode_type, KeycodeEventType::finalized));
     }
 
 
@@ -179,13 +176,11 @@ public:
     void copy_keycode_events_to_prev_cycle()
     {
         keycode_events_prev_cycle_.reset();
-        std::ranges::for_each(keycode_events_.get_filtered_events(), [this](KeycodeEvent& keycode_event)
-        {
-            if (keycode_event.type == KeycodeEventType::finalized)
-            {
-                keycode_events_prev_cycle_.push(keycode_event);
-            }
-        });
+        std::ranges::for_each(keycode_events_.get_filtered_events(std::nullopt, KeycodeEventType::finalized),
+                              [this](KeycodeEvent& keycode_event)
+                              {
+                                  keycode_events_prev_cycle_.push(keycode_event);
+                              });
     }
 };
 
