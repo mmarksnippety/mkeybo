@@ -3,6 +3,7 @@
 #include <iostream>
 #include "mkeybo/components/base.hpp"
 #include "mkeybo/components/keyboard_rule_settings/tap_dance_rule_settings.hpp"
+#include "mkeybo/components/keyboard_rule_settings/multi_mapping_rule_settings.hpp"
 
 
 inline std::ostream& operator<<(std::ostream& out, const mkeybo::Keycode& keycode);
@@ -91,23 +92,43 @@ inline void print_settings_rules_tap_dance(keyboard_rule_settings::TapDanceRuleS
 {
     for (auto& [trigger_keycode, actions] : tap_dance_settings->actions)
     {
-        std::cout << "trigger key: " << trigger_keycode << std::endl;
+        std::cout << "tap_dance|trigger: " << trigger_keycode << std::endl;
         for (auto& [counter, action_keycode] : actions)
         {
-            std::cout << "    counter|" << std::to_string(counter) << " --> " << action_keycode << std::endl;
+            std::cout << "    " << std::to_string(counter) << " --> " << action_keycode << std::endl;
         }
     }
 }
 
-inline void print_settings_rules(std::map<std::string, keyboard_rule_settings::BaseRuleSettings*> rules)
+inline void print_settings_rules_multi_mapping(keyboard_rule_settings::MultiMappingRuleSettings* multi_mapping_settings)
+{
+     for (auto& [triggers, keycode] : multi_mapping_settings->actions)
+     {
+         std::cout << "multi_mapping|triggers: ";
+         for (auto& trigger : triggers)
+         {
+             std::cout << trigger << " ";
+         }
+         std::cout << "--> " << keycode << std::endl;
+     }
+}
+
+inline void print_settings_rules(std::map<std::string, keyboard_rule_settings::BaseRuleSettings*> &rules)
 {
     for (auto& [name, settings] : rules)
     {
         std::cout << name << std::endl;
-        if (name == "tap_dance")
+        if (name == keyboard_rule_settings::rule_name_tap_dance)
         {
             const auto tap_dance_settings = reinterpret_cast<keyboard_rule_settings::TapDanceRuleSettings*>(settings);
             print_settings_rules_tap_dance(tap_dance_settings);
+            continue;
+        }
+        if (name == keyboard_rule_settings::rule_name_multi_mapping)
+        {
+            const auto multi_mapping_settings = reinterpret_cast<keyboard_rule_settings::MultiMappingRuleSettings*>(
+                settings);
+            print_settings_rules_multi_mapping(multi_mapping_settings);
         }
     }
 }
@@ -118,5 +139,11 @@ inline void print_settings_rules(std::map<std::string, keyboard_rule_settings::B
 inline std::ostream& operator<<(std::ostream& out, const mkeybo::Keycode& keycode)
 {
     out << mkeybo::get_keycode_type_name(keycode.type) << "|" << keycode.code;
+    return out;
+}
+
+inline std::ostream& operator<<(std::ostream& out, const mkeybo::KeycodeEvent& keycode_event)
+{
+    out << mkeybo::get_keycode_event_type_name(keycode_event.type) << "|" << keycode_event.keycode;
     return out;
 }

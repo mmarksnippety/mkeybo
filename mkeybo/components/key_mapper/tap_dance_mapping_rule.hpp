@@ -25,7 +25,7 @@ public:
         {
             return false;
         }
-        for (auto& keycode_event : keyboard_state->get_all_keycode_events_draft())
+        for (auto& keycode_event : keyboard_state->get_all_keycode_events())
         {
             if (auto const actions = tap_dance_settings->actions.find(keycode_event.keycode);
                 actions != tap_dance_settings->actions.end())
@@ -47,7 +47,8 @@ public:
             {
                 keycode_event.keycode = action->second;
             }
-            this->finalize_keycode_event(keyboard_state, keycode_event);
+            keycode_event.type = KeycodeEventType::finalized;
+            keycode_event.priority = KeycodeEventPriority::high;
             return;
         }
         const auto hold_action = actions.find(tap_dance_hold_action);
@@ -61,7 +62,8 @@ public:
                 {
                     keycode_event.keycode = hold_action->second;
                 }
-                this->finalize_keycode_event(keyboard_state, keycode_event);
+                keycode_event.type = KeycodeEventType::finalized;
+                keycode_event.priority = KeycodeEventPriority::high;
                 return;
             }
             // wait for hold or tap_dance_end, or TODO: other key_pressed
@@ -73,7 +75,8 @@ public:
             bool has_only_hold_action = has_hold_action && actions.size() == 1;
             if (is_other_key_pressed(keyboard_state, keycode_event) || has_only_hold_action)
             {
-                this->finalize_keycode_event(keyboard_state, keycode_event);
+                keycode_event.type = KeycodeEventType::finalized;
+                keycode_event.priority = KeycodeEventPriority::high;
                 return;
             }
             keycode_event.type = KeycodeEventType::canceled;
@@ -83,12 +86,11 @@ public:
 
     bool is_other_key_pressed(KeyboardState<switches_count>* keyboard_state, KeycodeEvent& keycode_event)
     {
-        return std::ranges::any_of(keyboard_state->get_filtered_keycode_events_draft(),
+        return std::ranges::any_of(keyboard_state->get_filtered_keycode_events(),
                                    [&](auto& k_e)
                                    {
                                        if (k_e == keycode_event) { return false; }
-                                       return keyboard_state->get_switch_events()[k_e.switch_no].type ==
-                                           SwitchEventType::pressed;
+                                       return keycode_event.type == KeycodeEventType::finalized;
                                    });
     }
 };

@@ -4,7 +4,7 @@
 #include "../keyboard_state.hpp"
 #include "../base.hpp"
 #include "base_mapping_rule.hpp"
-
+#include <ranges>
 
 namespace mkeybo::key_mapper {
 
@@ -16,7 +16,7 @@ public:
              KeyboardState<switches_count>* keyboard_state) override
     {
         bool layer_changed = false;
-        for (auto& keycode_event : keyboard_state->get_filtered_keycode_events_draft(KeycodeType::layer))
+        for (auto& keycode_event : keyboard_state->get_filtered_keycode_events(KeycodeType::layer))
         {
             if (!keyboard_state->is_layer_active(keycode_event.keycode.code))
             {

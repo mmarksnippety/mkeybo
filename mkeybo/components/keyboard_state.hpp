@@ -22,7 +22,6 @@ protected:
     uint8_t active_layout_prev_cycle_{};
     std::bitset<switches_count> switch_state_{};
     std::array<SwitchEvent, switches_count> switch_events_{};
-    KeycodeEventBuffer<keycodes_buffer_size> keycode_events_draft_{};
     KeycodeEventBuffer<keycodes_buffer_size> keycode_events_prev_cycle_{};
     KeycodeEventBuffer<keycodes_buffer_size> keycode_events_{};
     LedStatus led_status_{};
@@ -99,31 +98,6 @@ public:
     auto& get_switch_events() { return switch_events_; }
 
     /**
-     * Keycodes events drafts
-     */
-
-    void reset_keycode_events_draft() { keycode_events_draft_.reset(); }
-
-    auto& get_keycode_events_draft() { return keycode_events_draft_; }
-
-    void push_keycode_event_draft(const KeycodeEvent& keycode_event) { keycode_events_draft_.push(keycode_event); }
-
-    void push_keycode_event_draft(const Keycode& keycode, const uint8_t switch_no = std::numeric_limits<uint8_t>::max(),
-                                  const KeycodeEventType type = KeycodeEventType::draft)
-    {
-        keycode_events_draft_.push(keycode, switch_no, type);
-    }
-
-    auto& get_all_keycode_events_draft() { return keycode_events_draft_.get_all_events(); }
-
-    auto get_filtered_keycode_events_draft() { return keycode_events_draft_.get_filtered_events(); }
-
-    auto get_filtered_keycode_events_draft(const KeycodeType keycode_type)
-    {
-        return keycode_events_draft_.get_filtered_events(keycode_type);
-    }
-
-    /**
      * Keycodes events
      */
     void reset_keycode_events() { keycode_events_.reset(); }
@@ -131,9 +105,10 @@ public:
     void push_keycode_event(const KeycodeEvent& keycode_event) { keycode_events_.push(keycode_event); }
 
     void push_keycode_event(const Keycode& keycode, const uint8_t switch_no = std::numeric_limits<uint8_t>::max(),
-                            const KeycodeEventType type = KeycodeEventType::draft)
+                            const KeycodeEventType type = KeycodeEventType::draft,
+                            KeycodeEventPriority priority = KeycodeEventPriority::normal)
     {
-        keycode_events_.push(keycode, switch_no, type);
+        keycode_events_.push(keycode, switch_no, type, priority);
     }
 
     auto& get_all_keycode_events() { return keycode_events_.get_all_events(); }
@@ -147,8 +122,12 @@ public:
 
     bool have_keycode_events_changed(const KeycodeType& keycode_type)
     {
-        return !std::ranges::equal(keycode_events_.get_filtered_events(keycode_type),
-                                   keycode_events_prev_cycle_.get_filtered_events(keycode_type));
+        return !std::ranges::equal(
+            std::views::filter(keycode_events_.get_filtered_events(keycode_type), [&](const auto& keycode_event)
+            {
+                return keycode_event.type == KeycodeEventType::finalized;
+            }),
+            keycode_events_prev_cycle_.get_filtered_events(keycode_type));
     }
 
 
@@ -184,7 +163,6 @@ public:
         reset_active_layout();
         reset_switch_state();
         reset_switch_events();
-        reset_keycode_events_draft();
         reset_keycode_events();
         // reset prev cycle states
         std::fill(active_layers_prev_cycle_.begin(), active_layers_prev_cycle_.end(), false);
@@ -195,12 +173,20 @@ public:
     {
         active_layers_prev_cycle_ = active_layers_;
         active_layout_prev_cycle_ = active_layout_;
-        // copy keycodes events to prev cycle
+        copy_keycode_events_to_prev_cycle();
+    }
+
+    void copy_keycode_events_to_prev_cycle()
+    {
         keycode_events_prev_cycle_.reset();
-        for (auto& keycode_event : keycode_events_.get_filtered_events())
+        std::ranges::for_each(keycode_events_.get_filtered_events(), [this](KeycodeEvent& keycode_event)
         {
-            keycode_events_prev_cycle_.push(keycode_event);
-        }
+            if (keycode_event.type == KeycodeEventType::finalized)
+            {
+                keycode_events_prev_cycle_.push(keycode_event);
+            }
+        });
     }
 };
+
 }

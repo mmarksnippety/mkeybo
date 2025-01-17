@@ -16,7 +16,7 @@ public:
              KeyboardState<switches_count>* keyboard_state) override
     {
         bool layout_changed = false;
-        for (auto& keycode_event : keyboard_state->get_filtered_keycode_events_draft(KeycodeType::layout))
+        for (auto& keycode_event : keyboard_state->get_filtered_keycode_events(KeycodeType::layout))
         {
             if (keyboard_state->get_active_layout() != keycode_event.keycode.code)
             {

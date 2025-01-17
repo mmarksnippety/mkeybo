@@ -5,8 +5,8 @@
 #include "components/key_mapper/change_layer_mapping_rule.hpp"
 #include "components/key_mapper/change_layout_mapping_rule.hpp"
 #include "components/key_mapper/default_mapping_rule.hpp"
-#include "components/key_mapper/finalize_mapping_rule.hpp"
 #include "components/key_mapper/tap_dance_mapping_rule.hpp"
+#include "components/key_mapper/multi_mapping_rule.hpp"
 #include "mkeybo/components/switch_events.hpp"
 #include "mkeybo/components/switch_reader_matrix.hpp"
 #include "mkeybo/components/base.hpp"
@@ -73,9 +73,10 @@ KeyMapper<switches_count>* create_key_mapper()
     return new KeyMapper<switches_count>({
         new key_mapper::DefaultMappingRule<switches_count>{},
         new key_mapper::TapDanceMappingRule<switches_count>{},
+        // new key_mapper::MultiMappingRule<switches_count>{},
         new key_mapper::ChangeLayoutMappingRule<switches_count>{},
         new key_mapper::ChangeLayerMappingRule<switches_count>{},
-        new key_mapper::FinalizeMappingRule<switches_count>{},
+        // new key_mapper::FinalizeMappingRule<switches_count>{},
     });
 }
 

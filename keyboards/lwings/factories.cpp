@@ -5,6 +5,7 @@
 #include "mkeybo/components/keyboard_rule_settings/tap_dance_rule_settings.hpp"
 #include "mkeybo/components/base.hpp"
 #include "tusb.h"
+#include "mkeybo/components/keyboard_rule_settings/multi_mapping_rule_settings.hpp"
 
 
 template <size_t switches_count>
@@ -40,10 +41,30 @@ auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
             // 3
             K_N(), K_N(), K_N(), K_N(), K_N(),
             K_N(), K_N(), K_N(), K_N(), K_N(),
+            // 4
+            K_N(), K_N(), K_N(), K_N(), K_N(),
+            K_N(), K_N(), K_N(), K_N(), K_N(),
         }
     };
     auto layer_up = new mkeybo::KeyboardSettingsLayer<switches_count>{
         .name{"down"},
+        .keycodes{
+            // 1
+            K_N(), K_N(), K_N(), K_N(), K_N(),
+            K_N(), K_N(), K_N(), K_N(), K_N(),
+            // 2
+            K_N(), K_N(), K_N(), K_N(), K_N(),
+            K_N(), K_N(), K_N(), K_N(), K_N(),
+            // 3
+            K_N(), K_N(), K_N(), K_N(), K_N(),
+            K_N(), K_N(), K_N(), K_N(), K_N(),
+            // 4
+            K_N(), K_N(), K_N(), K_N(), K_N(),
+            K_N(), K_N(), K_N(), K_N(), K_N(),
+        }
+    };
+    auto layer_multi = new mkeybo::KeyboardSettingsLayer<switches_count>{
+        .name{"multi"},
         .keycodes{
             // 1
             H_K(HID_KEY_1), H_K(HID_KEY_2), H_K(HID_KEY_3), H_K(HID_KEY_4), H_K(HID_KEY_5),
@@ -52,19 +73,25 @@ auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
             K_N(), K_N(), K_N(), K_N(), K_N(),
             K_N(), K_N(), K_N(), K_N(), K_N(),
             // 3
-            K_N(), K_N(), K_N(), K_N(), K_N(),
+            K_N(), H_K (HID_KEY_ARROW_LEFT), H_K(HID_KEY_ARROW_DOWN), H_K(HID_KEY_ARROW_UP), H_K(HID_KEY_ARROW_RIGHT),
             K_N(), K_N(), K_N(), K_N(), K_N(),
         }
     };
     auto tap_dance_config = new mkeybo::keyboard_rule_settings::TapDanceRuleSettings({
         {H_K(HID_KEY_Z), {{255, H_K(HID_KEY_SHIFT_LEFT)} } }
     });
+    auto multi_layer_config = new mkeybo::keyboard_rule_settings::MultiMappingRuleSettings( {
+        {{LAYER_K(0), LAYER_K(1)}, LAYER_K(2)}
+    });
     // clang-format on
     return new mkeybo::KeyboardSettings<switches_count>(
         "qwerty",
         {layout},
-        {layer_down, layer_up},
-        {{mkeybo::keyboard_rule_settings::rule_name_tap_dance, tap_dance_config}},
+        {layer_down, layer_up, layer_multi},
+        {
+            {mkeybo::keyboard_rule_settings::rule_name_tap_dance, tap_dance_config},
+            {mkeybo::keyboard_rule_settings::rule_name_multi_mapping, multi_layer_config},
+        },
         50, // switches_refresh_interval_ms
         50, // press_min_interval_ms
         150, // tap_dance_max_interval_ms

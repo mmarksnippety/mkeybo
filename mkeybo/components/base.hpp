@@ -90,12 +90,19 @@ enum class KeycodeEventType : uint8_t
     canceled,
 };
 
+enum class KeycodeEventPriority : uint8_t
+{
+    normal,
+    high,
+};
+
 /**
  * KeycodeEvent represent Keycode with metadata, that we need to proper map keycode from switch.
  */
 struct KeycodeEvent
 {
-    KeycodeEventType type{KeycodeEventType::draft};
+    mutable KeycodeEventType type{KeycodeEventType::draft};
+    mutable KeycodeEventPriority priority{KeycodeEventPriority::normal};
     Keycode keycode{};
     uint8_t switch_no{0};
 
