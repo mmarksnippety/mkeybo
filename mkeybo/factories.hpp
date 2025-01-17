@@ -73,10 +73,9 @@ KeyMapper<switches_count>* create_key_mapper()
     return new KeyMapper<switches_count>({
         new key_mapper::DefaultMappingRule<switches_count>{},
         new key_mapper::TapDanceMappingRule<switches_count>{},
-        // new key_mapper::MultiMappingRule<switches_count>{},
+        new key_mapper::MultiMappingRule<switches_count>{},
         new key_mapper::ChangeLayoutMappingRule<switches_count>{},
         new key_mapper::ChangeLayerMappingRule<switches_count>{},
-        // new key_mapper::FinalizeMappingRule<switches_count>{},
     });
 }
 
