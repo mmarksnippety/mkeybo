@@ -34,7 +34,7 @@ void test_key_mapper_map_simple_key()
     switch_events[0].type = mkeybo::SwitchEventType::pressed;
     switch_events[0].pressed = 1;
     k_mapper->map(k_settings, k_state);
-    std::ranges::all_of(k_state->get_filtered_keycode_events_draft(), [](const auto& keycode_event)
+    std::ranges::all_of(k_state->get_filtered_keycode_events(), [](const auto& keycode_event)
     {
         return keycode_event.type == mkeybo::KeycodeEventType::canceled;
     });
@@ -64,7 +64,7 @@ void test_key_mapper_map_with_layer_change()
     switch_events[3].type = mkeybo::SwitchEventType::pressed;
     switch_events[3].pressed = 1;
     k_mapper->map(k_settings, k_state);
-    std::ranges::all_of(k_state->get_filtered_keycode_events_draft(), [](const auto& keycode_event)
+    std::ranges::all_of(k_state->get_filtered_keycode_events(), [](const auto& keycode_event)
     {
         return keycode_event.type == mkeybo::KeycodeEventType::canceled;
     });

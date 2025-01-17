@@ -55,7 +55,7 @@ void test_default_mapping_rule_map()
     assert(result == false);
     // check keycode_events_
     const auto expected_keycodes = std::vector{H_K(2), LAYER_K(1)};
-    auto keycode_events_view = k_state->get_filtered_keycode_events_draft();
+    auto keycode_events_view = k_state->get_filtered_keycode_events();
     auto generated_keycodes = std::vector<mkeybo::Keycode>{};
     generated_keycodes.reserve(std::ranges::distance(keycode_events_view));
     for (auto& keycode_event : keycode_events_view)

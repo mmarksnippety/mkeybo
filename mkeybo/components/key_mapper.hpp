@@ -33,7 +33,6 @@ public:
         while (!mapped)
         {
             keyboard_state->reset_keycode_events();
-            keyboard_state->reset_keycode_events_draft();
             mapped = true;
             for (auto rule : rules_)
             {

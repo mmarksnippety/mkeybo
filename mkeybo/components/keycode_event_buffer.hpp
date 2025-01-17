@@ -27,9 +27,9 @@ public:
     }
 
     void push(const Keycode& keycode, const uint8_t switch_no = std::numeric_limits<uint8_t>::max(),
-              const KeycodeEventType type = KeycodeEventType::draft)
+              const KeycodeEventType type = KeycodeEventType::draft, KeycodeEventPriority priority = KeycodeEventPriority::normal)
     {
-        push(KeycodeEvent{type, keycode, switch_no});
+        push(KeycodeEvent{type, priority, keycode, switch_no});
     }
 
     auto& get_all_events() { return buffer_; }

@@ -9,7 +9,7 @@
 #include "test_switch_events.hpp"
 #include "test_tap_dance_mapping_rule.hpp"
 #include "test_usb_reporter.hpp"
-#include "test_finalize_mappign_rule.hpp"
+#include "test_multi_mapping_rule.hpp"
 
 
 int main()
@@ -19,6 +19,11 @@ int main()
     std::cout << "++++++++++++" << std::endl;
     std::cout << "mkeybo tests" << std::endl;
     std::cout << "============" << std::endl;
+
+
+    // test_multi_mapping_get_src_keycode_event();
+    // assert(false);
+
     // //TODO: test KeyboardState, layer, layout, *_prev_cycle_
     test_update_switch_event_stable_idle();
     test_update_switch_event_idle_press_release();
@@ -30,9 +35,6 @@ int main()
     test_keycode_event_buffer_get_filtered_events();
     test_keycode_event_buffer_get_filtered_events_only_one_type();
     test_keycode_event_buffer_iterate_with_reference();
-    std::cout << "============" << std::endl;
-    test_finalize_mapping_rule_map();
-    test_finalize_mapping_rule_finalize_keycode_event();
     std::cout << "============" << std::endl;
     test_default_mapping_rule_get_keycode();
     test_default_mapping_rule_map();

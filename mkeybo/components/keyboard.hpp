@@ -92,9 +92,9 @@ public:
         this->state_->next_cycle();
         this->switch_reader_->update(this->state_->get_switch_state());
         this->switch_events_generator_->update(this->settings_, this->state_);
-        on_switch_events_generate();
+        on_switch_events_generated();
         this->key_mapper_->map(this->settings_, this->state_);
-        on_key_mapping();
+        on_key_mapped();
         this->usb_reporter_manager_->generate_reports(this->state_);
         on_usb_report_ready();
     }
@@ -125,11 +125,11 @@ public:
     {
     }
 
-    virtual void on_switch_events_generate()
+    virtual void on_switch_events_generated()
     {
     }
 
-    virtual void on_key_mapping()
+    virtual void on_key_mapped()
     {
     }
 

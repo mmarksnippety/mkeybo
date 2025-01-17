@@ -4,6 +4,7 @@
 #include "keyboard_state.hpp"
 #include "base.hpp"
 #include "tusb.h"
+#include <ranges>
 
 
 namespace mkeybo {
@@ -36,6 +37,16 @@ public:
             return report->second;
         }
         return nullptr;
+    }
+
+    auto get_keycode_events(KeyboardState<switches_count>* keyboard_state, KeycodeEventPriority priority)
+    {
+        return std::views::filter(keyboard_state->get_filtered_keycode_events(keycode_type),
+                                  [priority](const auto& keycode_event)
+                                  {
+                                      return keycode_event.type == KeycodeEventType::finalized && keycode_event.
+                                          priority == priority;
+                                  });
     }
 
     virtual void generate_empty_record(KeyboardState<switches_count>* keyboard_state) = 0;
@@ -171,8 +182,10 @@ public:
         report->status = UsbReportStatus::draft;
         report->modifiers = 0;
         report->keycodes.fill(0);
-        generate_report_modifiers(get_modifiers_keycodes(keyboard_state), report);
-        generate_report_keycodes(get_regular_keycodes(keyboard_state), report);
+        generate_report_modifiers(get_modifiers_keycodes(keyboard_state, KeycodeEventPriority::high), report);
+        generate_report_modifiers(get_modifiers_keycodes(keyboard_state, KeycodeEventPriority::normal), report);
+        auto index = generate_report_keycodes(get_regular_keycodes(keyboard_state, KeycodeEventPriority::high), report);
+        generate_report_keycodes(get_regular_keycodes(keyboard_state, KeycodeEventPriority::normal), report, index);
         report->status = UsbReportStatus::ready;
     }
 
@@ -212,9 +225,10 @@ public:
     }
 
     template <typename R>
-    void generate_report_keycodes(R&& regular_keycodes, UsbHidKeycodeReport* report)
+    uint8_t generate_report_keycodes(R&& regular_keycodes, UsbHidKeycodeReport* report,
+                                     const uint8_t start_keycode_index = 0)
     {
-        uint8_t keycode_index = 0;
+        uint8_t keycode_index = start_keycode_index;
         for (auto& keycode_event : regular_keycodes)
         {
             // more than 6 keys, go to phantom mode
@@ -226,20 +240,21 @@ public:
             report->keycodes[keycode_index] = static_cast<uint8_t>(keycode_event.keycode.code);
             keycode_index++;
         }
+        return keycode_index;
     }
 
-    auto get_regular_keycodes(KeyboardState<switches_count>* keyboard_state)
+    auto get_regular_keycodes(KeyboardState<switches_count>* keyboard_state, KeycodeEventPriority priority)
     {
-        return keyboard_state->get_filtered_keycode_events(keycode_type) |
+        return this->get_keycode_events(keyboard_state, priority) |
             std::views::filter([](const auto& keycode_event)
             {
                 return static_cast<uint8_t>(keycode_event.keycode.code) < HID_KEY_CONTROL_LEFT;
             });
     }
 
-    auto get_modifiers_keycodes(KeyboardState<switches_count>* keyboard_state)
+    auto get_modifiers_keycodes(KeyboardState<switches_count>* keyboard_state, KeycodeEventPriority priority)
     {
-        return keyboard_state->get_filtered_keycode_events(keycode_type) |
+        return this->get_keycode_events(keyboard_state, priority) |
             std::views::filter([](const auto& keycode_event)
             {
                 return keycode_event.keycode.code >= HID_KEY_CONTROL_LEFT;
@@ -279,13 +294,22 @@ public:
         const auto report = reinterpret_cast<UsbCcKeycodeReport*>(this->get_report(keyboard_state));
         report->status = UsbReportStatus::draft;
         report->keycode = 0;
-        auto keycode_event_view = keyboard_state->get_filtered_keycode_events(keycode_type);
-        auto keycode_event_it = keycode_event_view.begin();
-        if (keycode_event_it != keycode_event_view.end())
+        generate_report_(this->get_keycode_events(keyboard_state, KeycodeEventPriority::high), report);
+        if (report->keycode == 0)
+        {
+            generate_report_(this->get_keycode_events(keyboard_state, KeycodeEventPriority::normal), report);
+        }
+        report->status = UsbReportStatus::ready;
+    }
+
+    template <typename R>
+    void generate_report_(R&& keycodes_views, UsbCcKeycodeReport* report )
+    {
+        auto keycode_event_it = keycodes_views.begin();
+        if (keycode_event_it != keycodes_views.end())
         {
             report->keycode = (*keycode_event_it).keycode.code;
         }
-        report->status = UsbReportStatus::ready;
     }
 };
 

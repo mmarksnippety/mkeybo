@@ -26,8 +26,8 @@ void test_change_layout_mapping_rule_map()
     assert(k_state->get_active_layout() == 0);
     // layout 1 with some key pressed - cycle 1
     k_state->reset();
-    k_state->push_keycode_event_draft(H_K(2), 1);
-    k_state->push_keycode_event_draft(LAYOUT_K(1), 0);
+    k_state->push_keycode_event(H_K(2), 1);
+    k_state->push_keycode_event(LAYOUT_K(1), 0);
     result = k_rule->map(k_settings, k_state);
     assert(result == true); // cycle 2 is needed
     assert(k_state->get_active_layout() == 1);

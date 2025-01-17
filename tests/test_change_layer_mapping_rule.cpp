@@ -25,8 +25,8 @@ void test_change_layer_mapping_rule_map()
     assert(!k_state->is_layer_active(1));
     // first layer with some key pressed - cycle 1
     k_state->reset();
-    k_state->push_keycode_event_draft(H_K(10), 1);
-    k_state->push_keycode_event_draft(LAYER_K(1), 0);
+    k_state->push_keycode_event(H_K(10), 1);
+    k_state->push_keycode_event(LAYER_K(1), 0);
     result = k_rule->map(k_settings, k_state);
     assert(result == true); // next cycle needed
     assert(!k_state->is_layer_active(0));

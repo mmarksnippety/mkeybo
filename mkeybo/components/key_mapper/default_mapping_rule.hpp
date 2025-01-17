@@ -33,7 +33,10 @@ public:
                 if (auto keycode = get_keycode(keyboard_settings, keyboard_state, switch_index);
                     !keycode.is_null() && !keycode.is_sentinel())
                 {
-                    keyboard_state->push_keycode_event_draft(keycode, switch_index);
+                    auto keycode_event_type = switch_event.type == SwitchEventType::pressed
+                        ? KeycodeEventType::finalized
+                        : KeycodeEventType::draft;
+                    keyboard_state->push_keycode_event(keycode, switch_index, keycode_event_type);
                 }
             }
         }

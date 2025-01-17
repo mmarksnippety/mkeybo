@@ -19,7 +19,7 @@ void test_hid_reporter_get_regular_keycodes()
     k_state->push_keycode_event(H_K(HID_KEY_SHIFT_LEFT), 0, mkeybo::KeycodeEventType::finalized);
     k_state->push_keycode_event(H_K(HID_KEY_Q), 0, mkeybo::KeycodeEventType::finalized);
     std::vector<uint8_t> expected_keycodes = {HID_KEY_A, HID_KEY_B, HID_KEY_Q};
-    auto keycodes_view = hid_reporter->get_regular_keycodes(k_state);
+    auto keycodes_view = hid_reporter->get_regular_keycodes(k_state, mkeybo::KeycodeEventPriority::normal);
     auto keycodes_view_it = keycodes_view.begin();
     const auto keycodes_view_end = keycodes_view.end();
     for (const auto& expected_keycode : expected_keycodes)
@@ -44,7 +44,7 @@ void test_hid_reporter_get_modifier_keycodes()
     k_state->push_keycode_event(H_K(HID_KEY_SHIFT_LEFT), 0, mkeybo::KeycodeEventType::finalized);
     k_state->push_keycode_event(H_K(HID_KEY_Q), 0, mkeybo::KeycodeEventType::finalized);
     const std::vector<uint8_t> expected_keycodes = {HID_KEY_GUI_LEFT, HID_KEY_SHIFT_LEFT};
-    auto keycodes_view = hid_reporter->get_modifiers_keycodes(k_state);
+    auto keycodes_view = hid_reporter->get_modifiers_keycodes(k_state, mkeybo::KeycodeEventPriority::normal);
     auto keycodes_view_it = keycodes_view.begin();
     const auto keycodes_view_end = keycodes_view.end();
     for (const auto& expected_keycode : expected_keycodes)
@@ -69,7 +69,7 @@ void test_hid_reporter_generate_report_modifiers()
     k_state->push_keycode_event(H_K(HID_KEY_SHIFT_LEFT), 0, mkeybo::KeycodeEventType::finalized);
     k_state->push_keycode_event(H_K(HID_KEY_Q), 0, mkeybo::KeycodeEventType::finalized);
     const auto report = new mkeybo::UsbHidKeycodeReport();
-    hid_reporter->generate_report_modifiers(hid_reporter->get_modifiers_keycodes(k_state), report);
+    hid_reporter->generate_report_modifiers(hid_reporter->get_modifiers_keycodes(k_state, mkeybo::KeycodeEventPriority::normal), report);
     assert(report->modifiers == 0b00001010);
     std::cout << "PASS" << std::endl;
     delete hid_reporter;
@@ -89,7 +89,7 @@ void test_hid_reporter_generate_report_keycodes()
     k_state->push_keycode_event(H_K(HID_KEY_Q), 0, mkeybo::KeycodeEventType::finalized);
     k_state->push_keycode_event(H_K(HID_KEY_W), 0, mkeybo::KeycodeEventType::finalized);
     const auto report = new mkeybo::UsbHidKeycodeReport();
-    hid_reporter->generate_report_keycodes(hid_reporter->get_regular_keycodes(k_state), report);
+    hid_reporter->generate_report_keycodes(hid_reporter->get_regular_keycodes(k_state, mkeybo::KeycodeEventPriority::normal), report);
     assert(report->keycodes[0] == HID_KEY_B);
     assert(report->keycodes[1] == HID_KEY_Q);
     assert(report->keycodes[2] == HID_KEY_W);

@@ -26,13 +26,6 @@ public:
         return false;
     }
 
-    void finalize_keycode_event(KeyboardState<switches_count>* keyboard_state, KeycodeEvent& keycode_event)
-    {
-        auto finalized_keycode_event = keycode_event;
-        finalized_keycode_event.type = KeycodeEventType::finalized;
-        keyboard_state->push_keycode_event(finalized_keycode_event);
-        keycode_event.type = KeycodeEventType::canceled;
-    }
 };
 
 }
