@@ -12,7 +12,7 @@ void test_hid_reporter_get_regular_keycodes()
 {
     constexpr auto switches_count = 4;
     const auto k_state = new mkeybo::KeyboardState<switches_count>();
-    const auto hid_reporter = new mkeybo::UsbHidKeycodeReporter<switches_count>();
+    const auto hid_reporter = new mkeybo::UsbHidKeycodeReport<switches_count>();
     std::cout << __func__ << "...";
     k_state->push_keycode_event(H_K(HID_KEY_A), 0, mkeybo::KeycodeEventType::finalized);
     k_state->push_keycode_event(H_K(HID_KEY_B), 0, mkeybo::KeycodeEventType::finalized);
@@ -37,7 +37,7 @@ void test_hid_reporter_get_modifier_keycodes()
 {
     constexpr auto switches_count = 4;
     const auto k_state = new mkeybo::KeyboardState<switches_count>();
-    const auto hid_reporter = new mkeybo::UsbHidKeycodeReporter<switches_count>();
+    const auto hid_reporter = new mkeybo::UsbHidKeycodeReport<switches_count>();
     std::cout << __func__ << "...";
     k_state->push_keycode_event(H_K(HID_KEY_GUI_LEFT), 0, mkeybo::KeycodeEventType::finalized);
     k_state->push_keycode_event(H_K(HID_KEY_B), 0, mkeybo::KeycodeEventType::finalized);
@@ -62,7 +62,7 @@ void test_hid_reporter_generate_report_modifiers()
 {
     constexpr auto switches_count = 4;
     const auto k_state = new mkeybo::KeyboardState<switches_count>();
-    const auto hid_reporter = new mkeybo::UsbHidKeycodeReporter<switches_count>();
+    const auto hid_reporter = new mkeybo::UsbHidKeycodeReport<switches_count>();
     std::cout << __func__ << "...";
     k_state->push_keycode_event(H_K(HID_KEY_GUI_LEFT), 0, mkeybo::KeycodeEventType::finalized);
     k_state->push_keycode_event(H_K(HID_KEY_B), 0, mkeybo::KeycodeEventType::finalized);
@@ -81,7 +81,7 @@ void test_hid_reporter_generate_report_keycodes()
 {
     constexpr auto switches_count = 4;
     const auto k_state = new mkeybo::KeyboardState<switches_count>();
-    const auto hid_reporter = new mkeybo::UsbHidKeycodeReporter<switches_count>();
+    const auto hid_reporter = new mkeybo::UsbHidKeycodeReport<switches_count>();
     std::cout << __func__ << "...";
     k_state->push_keycode_event(H_K(HID_KEY_GUI_LEFT), 0, mkeybo::KeycodeEventType::finalized);
     k_state->push_keycode_event(H_K(HID_KEY_B), 0, mkeybo::KeycodeEventType::finalized);

@@ -11,97 +11,91 @@ namespace mkeybo {
 
 
 /**
+ * Usb reports
+ */
+
+enum class UsbReportStatus : uint8_t
+{
+    draft,
+    ready,
+    sent,
+};
+
+/**
  * Abstract base usb reporter
  */
 template <size_t switches_count>
-class UsbReporter
+class UsbReport
 {
 protected:
-    KeycodeType keycode_type;
+    KeycodeType keycode_type_;
+    UsbReportStatus status_ = UsbReportStatus::draft;
 
-    virtual void send_report_(const UsbReport*) = 0;
+    virtual void send_report_() = 0;
 
 public:
-    explicit UsbReporter(const KeycodeType keycode_type) :
-        keycode_type(keycode_type)
+    explicit UsbReport(const KeycodeType keycode_type) :
+        keycode_type_(keycode_type)
     {
     }
 
-    virtual ~UsbReporter() = default;
-
-    UsbReport* get_report(KeyboardState<switches_count>* keyboard_state)
-    {
-        auto report = keyboard_state->usb_reports.find(keycode_type);
-        if (report != keyboard_state->usb_reports.end())
-        {
-            return report->second;
-        }
-        return nullptr;
-    }
+    virtual ~UsbReport() = default;
 
     auto get_keycode_events(KeyboardState<switches_count>* keyboard_state, KeycodeEventPriority priority)
     {
-        return keyboard_state->get_filtered_keycode_events(keycode_type, KeycodeEventType::finalized, priority);
+        return keyboard_state->get_filtered_keycode_events(keycode_type_, KeycodeEventType::finalized, priority);
     }
-
-    virtual void generate_empty_record(KeyboardState<switches_count>* keyboard_state) = 0;
 
     virtual void generate_report(KeyboardState<switches_count>* keyboard_state) = 0;
 
+    [[nodiscard]] bool is_report_ready() const { return status_ == UsbReportStatus::ready; }
+
     void conditionally_generate_report(KeyboardState<switches_count>* keyboard_state)
     {
-        if (keyboard_state->have_keycode_events_changed(keycode_type))
+        if (keyboard_state->have_keycode_events_changed(keycode_type_))
         {
             generate_report(keyboard_state);
         }
     }
 
-    void send_report(UsbReport* report)
+    void send_report()
     {
-        send_report_(report);
-        report->status = UsbReportStatus::sent;
+        send_report_();
+        status_ = UsbReportStatus::sent;
     }
 };
 
 template <size_t switches_count>
-class UsbReporterManager
+class UsbReportManager
 {
-    std::vector<UsbReporter<switches_count>*> reporters_;
+    std::vector<UsbReport<switches_count>*> reports_;
+    size_t report_index_ = 0;
 
 public:
-    explicit UsbReporterManager(const std::vector<UsbReporter<switches_count>*>& reporters) :
-        reporters_(reporters)
+    explicit UsbReportManager(const std::vector<UsbReport<switches_count>*>& reporters) :
+        reports_(reporters)
     {
     }
 
-    ~UsbReporterManager()
+    ~UsbReportManager()
     {
-        for (auto reporter : reporters_)
+        for (auto reporter : reports_)
         {
             delete reporter;
         }
     }
 
-    void generate_empty_records(KeyboardState<switches_count>* keyboard_state)
-    {
-        for (auto reporter : reporters_)
-        {
-            reporter->generate_empty_record(keyboard_state);
-        }
-    }
-
     void generate_reports(KeyboardState<switches_count>* keyboard_state)
     {
-        for (auto reporter : reporters_)
+        for (auto reporter : reports_)
         {
             reporter->conditionally_generate_report(keyboard_state);
         }
     }
 
-    bool is_any_report_ready(KeyboardState<switches_count>* keyboard_state)
+    bool is_any_report_ready()
     {
-        return std::ranges::any_of(keyboard_state->usb_reports | std::views::values,
-                                   [](const auto& report) { return report->status == UsbReportStatus::ready; });
+        return std::ranges::any_of(reports_, [](const auto& reporter) { return reporter->is_report_ready(); });
     }
 
     /**
@@ -112,32 +106,27 @@ public:
      * finds the first UsbReport with a status of `UsbReportStatus::ready`. It then
      * sends this report using the corresponding reporter from the reporters list and
      * updates the `last_sent_usb_report_type` in the keyboard state.
-     *
-     * @param keyboard_state Pointer to the KeyboardState object containing the USB reports
-     *                       and the state of the keyboard.
      */
-    void send_reports(KeyboardState<switches_count>* keyboard_state)
+    void send_reports(const bool first_report=false)
     {
         if (!tud_hid_ready())
         {
             return;
         }
-        auto reporters_it = reporters_.begin();
-        auto reporters_end = reporters_.end();
-        auto reports_it = keyboard_state->usb_reports.begin();
-        auto reports_end = keyboard_state->usb_reports.end();
-        while (reports_it != reports_end)
+        if (first_report)
         {
-            if (auto report_pair = *reports_it; report_pair.second->status == UsbReportStatus::ready)
+            report_index_ = 0;
+        }
+        while (report_index_ < reports_.size())
+        {
+            if (reports_[report_index_]->is_report_ready())
             {
-                auto reporter = *reporters_it;
-                reporter->send_report(report_pair.second);
+                reports_[report_index_]->send_report();
+                report_index_++;
                 break;
             }
-            ++reporters_it;
-            ++reports_it;
+            report_index_++;
         }
-        // Here all reports are sent, or no ready report to send.
     }
 };
 
@@ -149,39 +138,34 @@ public:
  * https://wiki.osdev.org/USB_Human_Interface_Devices#USB_keyboard
  */
 template <size_t switches_count>
-class UsbHidKeycodeReporter final : public UsbReporter<switches_count>
+class UsbHidKeycodeReport final : public UsbReport<switches_count>
 {
-    using UsbReporter<switches_count>::keycode_type;
+    using UsbReport<switches_count>::keycode_type_;
+    using UsbReport<switches_count>::status_;
+    uint8_t report_modifiers_ = 0;
+    std::array<uint8_t, 6> report_keycodes_{};
 
 public:
-    explicit UsbHidKeycodeReporter() :
-        UsbReporter<switches_count>(KeycodeType::hid)
+    explicit UsbHidKeycodeReport() :
+        UsbReport<switches_count>(KeycodeType::hid)
     {
     }
 
-    void send_report_(const UsbReport* report) override
+    void send_report_() override
     {
-        const auto hid_key_report = reinterpret_cast<const UsbHidKeycodeReport*>(report);
-        tud_hid_keyboard_report(static_cast<uint8_t>(keycode_type), hid_key_report->modifiers,
-                                hid_key_report->keycodes.data());
-    }
-
-    void generate_empty_record(KeyboardState<switches_count>* keyboard_state) override
-    {
-        keyboard_state->usb_reports[keycode_type] = new UsbHidKeycodeReport();
+        tud_hid_keyboard_report(static_cast<uint8_t>(keycode_type_), report_modifiers_, report_keycodes_.data());
     }
 
     void generate_report(KeyboardState<switches_count>* keyboard_state) override
     {
-        const auto report = reinterpret_cast<UsbHidKeycodeReport*>(this->get_report(keyboard_state));
-        report->status = UsbReportStatus::draft;
-        report->modifiers = 0;
-        report->keycodes.fill(0);
-        generate_report_modifiers(get_modifiers_keycodes(keyboard_state, KeycodeEventPriority::high), report);
-        generate_report_modifiers(get_modifiers_keycodes(keyboard_state, KeycodeEventPriority::normal), report);
-        auto index = generate_report_keycodes(get_regular_keycodes(keyboard_state, KeycodeEventPriority::high), report);
-        generate_report_keycodes(get_regular_keycodes(keyboard_state, KeycodeEventPriority::normal), report, index);
-        report->status = UsbReportStatus::ready;
+        status_ = UsbReportStatus::draft;
+        report_modifiers_ = 0;
+        report_keycodes_.fill(0);
+        generate_report_modifiers(get_modifiers_keycodes(keyboard_state, KeycodeEventPriority::high));
+        generate_report_modifiers(get_modifiers_keycodes(keyboard_state, KeycodeEventPriority::normal));
+        auto index = generate_report_keycodes(get_regular_keycodes(keyboard_state, KeycodeEventPriority::high));
+        generate_report_keycodes(get_regular_keycodes(keyboard_state, KeycodeEventPriority::normal), index);
+        status_ = UsbReportStatus::ready;
     }
 
     /**
@@ -200,7 +184,7 @@ public:
      * HID_KEY_GUI_RIGHT      |  0xE7  | 7
      */
     template <typename R>
-    void generate_report_modifiers(R&& modifiers_keycodes, UsbHidKeycodeReport* report)
+    void generate_report_modifiers(R&& modifiers_keycodes)
     {
         for (auto& keycode_event : modifiers_keycodes)
         {
@@ -209,30 +193,29 @@ public:
             if (keycode_event.keycode.code >= std::numeric_limits<uint8_t>::max())
             {
                 const auto modifier_bits = static_cast<uint8_t>(keycode_event.keycode.code >> 8);
-                report->modifiers |= modifier_bits;
+                report_modifiers_ |= modifier_bits;
             }
             else
             {
                 auto bit_index = keycode_event.keycode.code - HID_KEY_CONTROL_LEFT;
-                report->modifiers |= 1 << bit_index;
+                report_modifiers_ |= 1 << bit_index;
             }
         }
     }
 
     template <typename R>
-    uint8_t generate_report_keycodes(R&& regular_keycodes, UsbHidKeycodeReport* report,
-                                     const uint8_t start_keycode_index = 0)
+    uint8_t generate_report_keycodes(R&& regular_keycodes, const uint8_t start_keycode_index = 0)
     {
         uint8_t keycode_index = start_keycode_index;
         for (auto& keycode_event : regular_keycodes)
         {
             // more than 6 keys, go to phantom mode
-            if (keycode_index > report->keycodes.size())
+            if (keycode_index > report_keycodes_.size())
             {
-                report->keycodes.fill(1);
+                report_keycodes_.fill(1);
                 break;
             }
-            report->keycodes[keycode_index] = static_cast<uint8_t>(keycode_event.keycode.code);
+            report_keycodes_[keycode_index] = static_cast<uint8_t>(keycode_event.keycode.code);
             keycode_index++;
         }
         return keycode_index;
@@ -263,50 +246,45 @@ public:
  * Send 1 key per report
  */
 template <size_t switches_count>
-class UsbCcKeycodeReporter final : public UsbReporter<switches_count>
+class UsbCcKeycodeReport final : public UsbReport<switches_count>
 {
-    using UsbReporter<switches_count>::keycode_type;
+    using UsbReport<switches_count>::keycode_type_;
+    using UsbReport<switches_count>::status_;
+    uint16_t keycode_{};
 
 public:
-    explicit UsbCcKeycodeReporter() :
-        UsbReporter<switches_count>(KeycodeType::cc)
+    explicit UsbCcKeycodeReport() :
+        UsbReport<switches_count>(KeycodeType::cc)
     {
     }
 
-    void send_report_(const UsbReport* report) override
+    void send_report_() override
     {
-        const auto cc_report = reinterpret_cast<const UsbCcKeycodeReport*>(report);
-        tud_hid_report(static_cast<uint8_t>(keycode_type), &cc_report->keycode, 2);
-    }
-
-    void generate_empty_record(KeyboardState<switches_count>* keyboard_state) override
-    {
-        keyboard_state->usb_reports[keycode_type] = new UsbCcKeycodeReport();
+        tud_hid_report(static_cast<uint8_t>(keycode_type_), &keycode_, 2);
     }
 
     void generate_report(KeyboardState<switches_count>* keyboard_state) override
     {
-        const auto report = reinterpret_cast<UsbCcKeycodeReport*>(this->get_report(keyboard_state));
-        report->status = UsbReportStatus::draft;
-        report->keycode = 0;
-        generate_report_(this->get_keycode_events(keyboard_state, KeycodeEventPriority::high), report);
-        if (report->keycode == 0)
+        status_ = UsbReportStatus::draft;
+        keycode_ = 0;
+        generate_report_(this->get_keycode_events(keyboard_state, KeycodeEventPriority::high));
+        if (keycode_ == 0)
         {
-            generate_report_(this->get_keycode_events(keyboard_state, KeycodeEventPriority::normal), report);
+            generate_report_(this->get_keycode_events(keyboard_state, KeycodeEventPriority::normal));
         }
-        report->status = UsbReportStatus::ready;
+        status_ = UsbReportStatus::ready;
     }
 
     template <typename R>
-    void generate_report_(R&& keycodes_views, UsbCcKeycodeReport* report)
+    void generate_report_(R&& keycodes_views)
     {
         auto keycode_event_it = keycodes_views.begin();
         if (keycode_event_it != keycodes_views.end())
         {
-            report->keycode = (*keycode_event_it).keycode.code;
+            keycode_ = (*keycode_event_it).keycode.code;
         }
     }
 };
 
 
-} // namespace mkeybo
+}
