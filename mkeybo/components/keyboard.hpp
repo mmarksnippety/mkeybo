@@ -19,7 +19,7 @@ protected:
     SwitchReader<switch_count>* switch_reader_;
     SwitchEventsGenerator<switch_count>* switch_events_generator_;
     KeyMapper<switch_count>* key_mapper_;
-    UsbReporterManager<switch_count>* usb_reporter_manager_;
+    UsbReportManager<switch_count>* usb_report_manager_;
     KeyboardSettings<switch_count>* settings_{};
     std::string unique_id_{};
 
@@ -27,12 +27,10 @@ public:
     Keyboard(KeyboardState<switch_count>* state, SwitchReader<switch_count>* switch_reader,
              SwitchEventsGenerator<switch_count>* switch_events_generator,
              KeyMapper<switch_count>* key_mapper,
-             UsbReporterManager<switch_count>* usb_reporter_manager) :
+             UsbReportManager<switch_count>* usb_reporter_manager) :
         state_(state), switch_reader_(switch_reader), switch_events_generator_(switch_events_generator),
-        key_mapper_(key_mapper), usb_reporter_manager_(usb_reporter_manager)
-    {
-        usb_reporter_manager_->generate_empty_records(state_);
-    };
+        key_mapper_(key_mapper), usb_report_manager_(usb_reporter_manager)
+    {};
 
     virtual ~Keyboard()
     {
@@ -40,6 +38,7 @@ public:
         delete switch_reader_;
         delete switch_events_generator_;
         delete key_mapper_;
+        delete usb_report_manager_;
         delete settings_;
     };
 
@@ -51,7 +50,7 @@ public:
 
     KeyMapper<switch_count>* get_key_mapper() { return key_mapper_; }
 
-    UsbReporterManager<switch_count>* get_usb_reporter_manager() { return usb_reporter_manager_; }
+    UsbReportManager<switch_count>* get_usb_reporter_manager() { return usb_report_manager_; }
 
     KeyboardSettings<switch_count>* get_settings() { return settings_; }
 
@@ -95,13 +94,13 @@ public:
         on_switch_events_generated();
         this->key_mapper_->map(this->settings_, this->state_);
         on_key_mapped();
-        this->usb_reporter_manager_->generate_reports(this->state_);
+        this->usb_report_manager_->generate_reports(this->state_);
         on_usb_report_ready();
     }
 
     virtual void hid_task()
     {
-        if (usb_reporter_manager_->is_any_report_ready(state_))
+        if (usb_report_manager_->is_any_report_ready())
         {
             if (tud_suspended())
             {
@@ -118,7 +117,7 @@ public:
     /**
      * This method send first ready usb report to host
      */
-    void send_usb_report() { usb_reporter_manager_->send_reports(state_); }
+    void send_usb_report() { usb_report_manager_->send_reports(true); }
 
     // some event from livecycle
     virtual void on_update_settings()

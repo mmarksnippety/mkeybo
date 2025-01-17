@@ -27,18 +27,8 @@ protected:
     LedStatus led_status_{};
 
 public:
-    std::map<KeycodeType, UsbReport*> usb_reports;
-
     KeyboardState() { reset(); }
-
-    ~KeyboardState()
-    {
-        for (const auto& report : std::views::values(usb_reports))
-        {
-            delete report;
-        }
-        usb_reports.clear();
-    }
+    ~KeyboardState() = default;
 
     /**
      * Layers
@@ -126,13 +116,6 @@ public:
             keycode_events_.get_filtered_events(keycode_type, KeycodeEventType::finalized),
             keycode_events_prev_cycle_.get_filtered_events(keycode_type, KeycodeEventType::finalized));
     }
-
-
-    /**
-     * Usb reports
-     */
-
-    auto& get_usb_reports() { return usb_reports; }
 
     /**
      * Led status

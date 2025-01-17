@@ -80,11 +80,11 @@ KeyMapper<switches_count>* create_key_mapper()
 }
 
 template <size_t switches_count>
-UsbReporterManager<switches_count>* create_usb_reporter_manager()
+UsbReportManager<switches_count>* create_usb_reporter_manager()
 {
-    return new UsbReporterManager<switches_count>({
-        new UsbHidKeycodeReporter<switches_count>{},
-        new UsbCcKeycodeReporter<switches_count>{}
+    return new UsbReportManager<switches_count>({
+        new UsbHidKeycodeReport<switches_count>{},
+        new UsbCcKeycodeReport<switches_count>{}
     });
 }
 

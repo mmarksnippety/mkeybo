@@ -47,10 +47,6 @@ bool is_any_info_to_print()
         return sw_event.type != mkeybo::SwitchEventType::idle;
     });
     is_any_info_to_print |= !keyboard->get_state()->get_filtered_keycode_events().empty();
-    is_any_info_to_print |= std::ranges::any_of(keyboard->get_state()->get_usb_reports(), [](const auto& report)
-    {
-        return report.second->status == mkeybo::UsbReportStatus::ready;
-    });
     return is_any_info_to_print;
 }
 
@@ -77,6 +73,7 @@ void print_keyboard_info()
         std::cout << "event|" << mkeybo::get_keycode_event_type_name(key_event.type) << "|" << key_event.keycode
             << std::endl;
     }
+    /*
     for (const auto& [keycode_type, report] : keyboard->get_state()->get_usb_reports())
     {
         if (keycode_type == mkeybo::KeycodeType::hid && report->status == mkeybo::UsbReportStatus::ready)
@@ -90,6 +87,7 @@ void print_keyboard_info()
             std::cout << "|" << std::endl;
         }
     }
+    */
 }
 
 

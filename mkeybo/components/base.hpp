@@ -113,34 +113,6 @@ struct KeycodeEvent
 };
 
 /**
- * Usb reports
- */
-
-enum class UsbReportStatus : uint8_t
-{
-    draft,
-    ready,
-    sent,
-};
-
-//IDEA: make one USBReport with union of struct with reports
-struct UsbReport
-{
-    UsbReportStatus status{UsbReportStatus::draft};
-};
-
-struct UsbHidKeycodeReport : UsbReport
-{
-    uint8_t modifiers = 0;
-    std::array<uint8_t, 6> keycodes{};
-};
-
-struct UsbCcKeycodeReport : UsbReport
-{
-    uint16_t keycode{};
-};
-
-/**
  * Received from usb host keyboard led status
  */
 struct LedStatus
