@@ -25,7 +25,7 @@ public:
         {
             return false;
         }
-        for (auto& keycode_event : keyboard_state->get_all_keycode_events())
+        for (auto& keycode_event : keyboard_state->get_filtered_keycode_events())
         {
             if (auto const actions = tap_dance_settings->actions.find(keycode_event.keycode);
                 actions != tap_dance_settings->actions.end())
@@ -86,12 +86,9 @@ public:
 
     bool is_other_key_pressed(KeyboardState<switches_count>* keyboard_state, KeycodeEvent& keycode_event)
     {
-        return std::ranges::any_of(keyboard_state->get_filtered_keycode_events(),
-                                   [&](auto& k_e)
-                                   {
-                                       if (k_e == keycode_event) { return false; }
-                                       return keycode_event.type == KeycodeEventType::finalized;
-                                   });
+        return std::ranges::any_of(
+            keyboard_state->get_filtered_keycode_events(std::nullopt, KeycodeEventType::finalized),
+            [&](auto& k_e) { return k_e != keycode_event; });
     }
 };
 
