@@ -11,10 +11,12 @@ target_link_libraries(lwings
         hardware_pio
         hardware_timer
         hardware_clocks
+        hardware_i2c
         pico_stdlib
         pico_unique_id
         tinyusb_device
         tinyusb_board
+        pico_ssd1306
 )
 target_include_directories(lwings PRIVATE
         ${CMAKE_SOURCE_DIR}

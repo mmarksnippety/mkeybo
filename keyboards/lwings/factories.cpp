@@ -48,7 +48,7 @@ auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
         }
     };
     auto layer_up = new mkeybo::KeyboardSettingsLayer<switches_count>{
-        .name{"down"},
+        .name{"up"},
         .keycodes{
             // 1
             N_K(), N_K(), N_K(), N_K(), N_K(),

@@ -39,6 +39,11 @@ pico_enable_stdio_usb(tests 0)
 
 
 #
+# Externals
+#
+add_subdirectory(external/pico-ssd1306)
+
+#
 # Keyboards
 #
 add_subdirectory(keyboards/lwings)
