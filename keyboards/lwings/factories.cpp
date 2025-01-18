@@ -1,11 +1,12 @@
-#include "mkeybo/factories.hpp"
 #include "config.hpp"
 #include "factories.hpp"
+#include "mkeybo/factories.hpp"
+#include "mkeybo/consts.hpp"
 #include "mkeybo/components/keyboard_settings.hpp"
 #include "mkeybo/components/keyboard_rule_settings/tap_dance_rule_settings.hpp"
+#include "mkeybo/components/keyboard_rule_settings/multi_mapping_rule_settings.hpp"
 #include "mkeybo/components/base.hpp"
 #include "tusb.h"
-#include "mkeybo/components/keyboard_rule_settings/multi_mapping_rule_settings.hpp"
 
 
 template <size_t switches_count>
@@ -25,8 +26,8 @@ auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
             H_K(HID_KEY_Z), H_K(HID_KEY_X), H_K(HID_KEY_C), H_K(HID_KEY_V), H_K(HID_KEY_B),
             H_K(HID_KEY_N), H_K(HID_KEY_M), H_K(HID_KEY_PERIOD), H_K(HID_KEY_SLASH), H_K(HID_KEY_ENTER),
             // 4
-            K_N(), K_N(), K_N(), LAYER_K(0), H_K(HID_KEY_BACKSPACE),
-            H_K(HID_KEY_SPACE), LAYER_K(1), K_N(), K_N(), K_N(),
+            N_K(), N_K(), N_K(), LAYER_K(0), H_K(HID_KEY_BACKSPACE),
+            H_K(HID_KEY_SPACE), LAYER_K(1), N_K(), N_K(), N_K(),
        }
     };
     auto layer_down = new mkeybo::KeyboardSettingsLayer<switches_count>{
@@ -36,31 +37,31 @@ auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
             H_K(M_LSHIFT(HID_KEY_1)), H_K(M_LSHIFT(HID_KEY_2)), H_K(M_LSHIFT(HID_KEY_3)), H_K(M_LSHIFT(HID_KEY_4)), H_K(M_LSHIFT(HID_KEY_5)),
             H_K(M_LSHIFT(HID_KEY_6)), H_K(M_LSHIFT(HID_KEY_7)), H_K(M_LSHIFT(HID_KEY_8)), H_K(M_LSHIFT(HID_KEY_9)), H_K(M_LSHIFT(HID_KEY_0)),
             // 2
-            K_N(), K_N(), K_N(), K_N(), K_N(),
-            K_N(), K_N(), K_N(), K_N(), K_N(),
+            N_K(), N_K(), N_K(), N_K(), N_K(),
+            N_K(), N_K(), N_K(), N_K(), N_K(),
             // 3
-            K_N(), K_N(), K_N(), K_N(), K_N(),
-            K_N(), K_N(), K_N(), K_N(), K_N(),
+            N_K(), N_K(), N_K(), N_K(), N_K(),
+            N_K(), N_K(), N_K(), N_K(), N_K(),
             // 4
-            K_N(), K_N(), K_N(), K_N(), K_N(),
-            K_N(), K_N(), K_N(), K_N(), K_N(),
+            N_K(), N_K(), N_K(), N_K(), N_K(),
+            N_K(), N_K(), N_K(), N_K(), N_K(),
         }
     };
     auto layer_up = new mkeybo::KeyboardSettingsLayer<switches_count>{
         .name{"down"},
         .keycodes{
             // 1
-            K_N(), K_N(), K_N(), K_N(), K_N(),
-            K_N(), K_N(), K_N(), K_N(), K_N(),
+            N_K(), N_K(), N_K(), N_K(), N_K(),
+            N_K(), N_K(), N_K(), N_K(), N_K(),
             // 2
-            K_N(), K_N(), K_N(), K_N(), K_N(),
-            K_N(), K_N(), K_N(), K_N(), K_N(),
+            N_K(), N_K(), N_K(), N_K(), N_K(),
+            N_K(), N_K(), N_K(), N_K(), N_K(),
             // 3
-            K_N(), K_N(), K_N(), K_N(), K_N(),
-            K_N(), K_N(), K_N(), K_N(), K_N(),
+            N_K(), N_K(), N_K(), N_K(), N_K(),
+            N_K(), N_K(), N_K(), N_K(), N_K(),
             // 4
-            K_N(), K_N(), K_N(), K_N(), K_N(),
-            K_N(), K_N(), K_N(), K_N(), K_N(),
+            N_K(), N_K(), N_K(), N_K(), N_K(),
+            N_K(), N_K(), N_K(), N_K(), N_K(),
         }
     };
     auto layer_multi = new mkeybo::KeyboardSettingsLayer<switches_count>{
@@ -70,11 +71,14 @@ auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
             H_K(HID_KEY_1), H_K(HID_KEY_2), H_K(HID_KEY_3), H_K(HID_KEY_4), H_K(HID_KEY_5),
             H_K(HID_KEY_6), H_K(HID_KEY_7), H_K(HID_KEY_8), H_K(HID_KEY_9), H_K(HID_KEY_0),
             // 2
-            K_N(), K_N(), K_N(), K_N(), K_N(),
-            K_N(), K_N(), K_N(), K_N(), K_N(),
+            N_K(), N_K(), N_K(), N_K(), N_K(),
+            N_K(), N_K(), N_K(), N_K(), N_K(),
             // 3
-            K_N(), H_K (HID_KEY_ARROW_LEFT), H_K(HID_KEY_ARROW_DOWN), H_K(HID_KEY_ARROW_UP), H_K(HID_KEY_ARROW_RIGHT),
-            K_N(), K_N(), K_N(), K_N(), K_N(),
+            ACTION_K(mkeybo::key_action_reboot_to_bootloader), ACTION_K(mkeybo::key_action_reboot), N_K(), N_K(), N_K(),
+            N_K(), H_K (HID_KEY_ARROW_LEFT), H_K(HID_KEY_ARROW_DOWN), H_K(HID_KEY_ARROW_UP), H_K(HID_KEY_ARROW_RIGHT),
+            // 4
+            N_K(), N_K(), N_K(), N_K(), N_K(),
+            N_K(), N_K(), N_K(), N_K(), N_K(),
         }
     };
     auto tap_dance_config = new mkeybo::keyboard_rule_settings::TapDanceRuleSettings({

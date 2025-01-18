@@ -9,8 +9,10 @@
 #include "components/key_mapper/multi_mapping_rule.hpp"
 #include "mkeybo/components/switch_events.hpp"
 #include "mkeybo/components/switch_reader_matrix.hpp"
+#include "mkeybo/components/actions.hpp"
 #include "mkeybo/components/base.hpp"
-#include "tusb.h"
+#include "mkeybo/consts.hpp"
+#include "components/actions/reboot_actions.hpp"
 
 
 /**
@@ -18,7 +20,7 @@
  */
 
 // null key
-#define K_N() mkeybo::Keycode{}
+#define N_K() mkeybo::Keycode{}
 // hid keys
 #define H_K(KC) mkeybo::Keycode{mkeybo::KeycodeType::hid, KC}
 #define M_(MC, KC) ((static_cast<uint16_t>(MC) << 8) | KC)
@@ -44,7 +46,6 @@
 #define LAYER_K(KC) mkeybo::Keycode{mkeybo::KeycodeType::layer, KC}
 // layout keys
 #define LAYOUT_K(KC) mkeybo::Keycode{mkeybo::KeycodeType::layout, KC}
-
 
 
 namespace mkeybo {
@@ -85,6 +86,17 @@ UsbReportManager<switches_count>* create_usb_reporter_manager()
     return new UsbReportManager<switches_count>({
         new UsbHidKeycodeReport<switches_count>{},
         new UsbCcKeycodeReport<switches_count>{}
+    });
+}
+
+template <size_t switches_count>
+ActionManager<switches_count>* create_action_manager()
+{
+    return new ActionManager<switches_count>({
+        {Keycode{KeycodeType::action, key_action_reboot_to_bootloader},
+         new actions::RebootToBootloaderAction<switches_count>{}},
+        {Keycode{KeycodeType::action, key_action_reboot},
+         new actions::RebootAction<switches_count>{}}
     });
 }
 

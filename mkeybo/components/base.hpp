@@ -136,5 +136,7 @@ struct KeyboardConfig
     std::string manufactured_name{};
 };
 
+template <size_t switch_count> class Keyboard;
+
 
 }
