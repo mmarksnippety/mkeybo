@@ -50,14 +50,12 @@ public:
             const auto pin = column_start_pin + offset;
             gpio_init(pin);
             gpio_set_dir(pin, GPIO_OUT);
-            std::cout << "Column pin: " << std::to_string(pin) << " initialized OUT" << std::endl;
         }
         for (auto offset = 0; offset < row_count; offset++)
         {
             const auto pin = row_start_pin + offset;
             gpio_init(pin);
             gpio_set_dir(pin, GPIO_IN);
-            std::cout << "Row pin: " << std::to_string(pin) << " initialized IN" << std::endl;
         }
     }
 
