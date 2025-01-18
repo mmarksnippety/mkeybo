@@ -4,6 +4,7 @@
 #include "switch_events.hpp"
 #include "switch_reader.hpp"
 #include "usb_reporter.hpp"
+#include "actions.hpp"
 #include "base.hpp"
 #include "pico/unique_id.h"
 
@@ -20,6 +21,7 @@ protected:
     SwitchEventsGenerator<switch_count>* switch_events_generator_;
     KeyMapper<switch_count>* key_mapper_;
     UsbReportManager<switch_count>* usb_report_manager_;
+    ActionManager<switch_count>* action_manager_;
     KeyboardSettings<switch_count>* settings_{};
     std::string unique_id_{};
 
@@ -27,10 +29,12 @@ public:
     Keyboard(KeyboardState<switch_count>* state, SwitchReader<switch_count>* switch_reader,
              SwitchEventsGenerator<switch_count>* switch_events_generator,
              KeyMapper<switch_count>* key_mapper,
-             UsbReportManager<switch_count>* usb_reporter_manager) :
+             UsbReportManager<switch_count>* usb_reporter_manager,
+             ActionManager<switch_count>* action_manager) :
         state_(state), switch_reader_(switch_reader), switch_events_generator_(switch_events_generator),
-        key_mapper_(key_mapper), usb_report_manager_(usb_reporter_manager)
-    {};
+        key_mapper_(key_mapper), usb_report_manager_(usb_reporter_manager), action_manager_(action_manager)
+    {
+    };
 
     virtual ~Keyboard()
     {
@@ -96,6 +100,7 @@ public:
         on_key_mapped();
         this->usb_report_manager_->generate_reports(this->state_);
         on_usb_report_ready();
+        this->action_manager_->make_actions(this);
     }
 
     virtual void hid_task()

@@ -1,10 +1,8 @@
 #pragma once
 
-
 #include "config.hpp"
 #include "mkeybo/components/keyboard.hpp"
 #include "mkeybo/factories.hpp"
-
 
 template <size_t switches_count>
 class Keyboard final : public mkeybo::Keyboard<switches_count>
@@ -16,7 +14,9 @@ public:
                                          mkeybo::create_switch_reader_matrix<switches_count>(switch_reader_config),
                                          mkeybo::create_switch_events_generator<switches_count>(),
                                          mkeybo::create_key_mapper<switches_count>(),
-                                         mkeybo::create_usb_reporter_manager<switches_count>())
+                                         mkeybo::create_usb_reporter_manager<switches_count>(),
+                                         mkeybo::create_action_manager<switches_count>()
+            )
     {
     }
 
