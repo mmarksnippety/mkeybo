@@ -14,6 +14,7 @@ target_link_libraries(lwings
         hardware_i2c
         pico_stdlib
         pico_unique_id
+        pico_multicore
         tinyusb_device
         tinyusb_board
         pico_ssd1306

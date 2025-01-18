@@ -1,11 +1,10 @@
-#include <iostream>
-#include <string_view>
+#include "pico/stdlib.h"
+#include "pico/multicore.h"
+#include "pico/util/queue.h"
 #include "bsp/board_api.h"
 #include "config.hpp"
 #include "factories.hpp"
 #include "keyboard.hpp"
-#include "mkeybo/debug.hpp"
-#include "pico/stdlib.h"
 #include "debug.hpp"
 #include "display.hpp"
 #include "logo.hpp"
@@ -13,6 +12,20 @@
 
 mkeybo::Keyboard<keyboard_config.switches_count>* keyboard{};
 Display* display{};
+
+queue_t event_queue;
+
+enum class QueueEventType
+{
+    idle,
+    layer_change,
+};
+
+struct QueueEvnet
+{
+    QueueEventType type{QueueEventType::idle};
+    uint8_t data[64]{}; //
+};
 
 auto get_ms_since_boot() { return to_ms_since_boot(get_absolute_time()); }
 
@@ -29,10 +42,10 @@ void keyboard_main_task()
     if (current_ts - last_main_task_ts >= keyboard->get_settings()->switches_refresh_interval_ms)
     {
         keyboard->main_task(); // idle < 200us, typically << 300us
-        print_keyboard_info();
         if (keyboard->get_state()->is_layer_changed())
         {
-            display->show_keyboard_status(keyboard);
+            constexpr QueueEvnet event = {QueueEventType::layer_change};
+            queue_add_blocking(&event_queue, &event);
         }
         last_main_task_ts = current_ts;
     }
@@ -55,26 +68,36 @@ void keyboard_hid_task()
     }
 }
 
+[[noreturn]] void core1_entry()
+{
+    display->display_logo(mkeybo_logo);
+
+    while (true)
+    {
+        QueueEvnet event;
+        queue_remove_blocking(&event_queue, &event);
+        if (event.type == QueueEventType::layer_change)
+        {
+            display->show_keyboard_status(keyboard);
+        }
+    }
+}
 
 [[noreturn]] int main()
 {
     stdio_init_all();
     tud_init(0);
     print_logo();
-    // initialize keyboard, and load default settings
     keyboard = new Keyboard<keyboard_config.switches_count>();
     keyboard->update_settings(create_keyboard_settings<keyboard_config.switches_count>());
-    std::cout << "UniqueID: " << keyboard->get_unique_id() << std::endl;
-    mkeybo::print_settings(keyboard->get_settings());
-    mkeybo::print_settings_rules(keyboard->get_settings()->rules);
-    std::cout << std::endl;
-    std::cout << std::endl;
+
+    queue_init(&event_queue, sizeof(QueueEvnet), 3);
 
     display = new Display(display_config);
-    display->display_logo(mkeybo_logo);
+    multicore_launch_core1(core1_entry);
     sleep_ms(2000);
-    display->show_keyboard_status(keyboard);
-
+    constexpr QueueEvnet event = {QueueEventType::layer_change};
+    queue_add_blocking(&event_queue, &event);
     // main loop
     while (true)
     {
