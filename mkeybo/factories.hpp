@@ -1,6 +1,6 @@
 #pragma once
 
-#include "components/keycode_mapping_rules.hpp"
+#include "components/mapping_rules.hpp"
 #include "components/usb_reports.hpp"
 #include "mkeybo/components/switch_events.hpp"
 #include "mkeybo/components/switch_reader_matrix.hpp"
@@ -8,7 +8,6 @@
 #include "mkeybo/components/base.hpp"
 #include "mkeybo/consts.hpp"
 #include "components/actions/reboot_actions.hpp"
-#include "components/keycode_mapping_rules.hpp"
 
 
 /**
@@ -60,14 +59,14 @@ SwitchReaderMatrix<switches_count>* create_switch_reader_matrix(const SwitchRead
 }
 
 template <size_t switches_count, size_t keycodes_buffer_size>
-std::vector<keycode_mapping_rule::BaseMappingRule<switches_count, keycodes_buffer_size>*> create_keycode_mapping_rules()
+std::vector<mapping_rule::BaseMappingRule<switches_count, keycodes_buffer_size>*> create_keycode_mapping_rules()
 {
     return {
-        new keycode_mapping_rule::DefaultMappingRule<switches_count, keycodes_buffer_size>{},
-        new keycode_mapping_rule::TapDanceMappingRule<switches_count, keycodes_buffer_size>{},
-        new keycode_mapping_rule::MultiMappingRule<switches_count, keycodes_buffer_size>{},
-        new keycode_mapping_rule::ChangeLayoutMappingRule<switches_count, keycodes_buffer_size>{},
-        new keycode_mapping_rule::ChangeLayerMappingRule<switches_count, keycodes_buffer_size>{},
+        new mapping_rule::DefaultMappingRule<switches_count, keycodes_buffer_size>{},
+        new mapping_rule::TapDanceMappingRule<switches_count, keycodes_buffer_size>{},
+        new mapping_rule::MultiMappingRule<switches_count, keycodes_buffer_size>{},
+        new mapping_rule::ChangeLayoutMappingRule<switches_count, keycodes_buffer_size>{},
+        new mapping_rule::ChangeLayerMappingRule<switches_count, keycodes_buffer_size>{},
     };
 }
 

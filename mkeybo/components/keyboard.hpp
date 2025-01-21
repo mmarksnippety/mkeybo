@@ -8,7 +8,7 @@
 #include "input_device.hpp"
 #include "keyboard_settings.hpp"
 #include "keycode_event_buffer.hpp"
-#include "keycode_mapping_rules.hpp"
+#include "mapping_rules.hpp"
 #include "switch_events.hpp"
 #include "switch_reader.hpp"
 #include "usb_reports.hpp"
@@ -35,14 +35,14 @@ protected:
     LedStatus led_status_{};
     SwitchReader<switches_count>* switch_reader_;
     SwitchEventsGenerator<switches_count>* switch_events_generator_;
-    std::vector<keycode_mapping_rule::BaseMappingRule<switches_count, keycodes_buffer_size>*> keycodes_mapping_rules_;
+    std::vector<mapping_rule::BaseMappingRule<switches_count, keycodes_buffer_size>*> keycodes_mapping_rules_;
     ActionManager<switches_count, keycodes_buffer_size>* action_manager_;
     KeyboardSettings<switches_count>* settings_{};
 
 public:
     Keyboard(SwitchReader<switches_count>* switch_reader,
              SwitchEventsGenerator<switches_count>* switch_events_generator,
-             const std::vector<keycode_mapping_rule::BaseMappingRule<switches_count, keycodes_buffer_size>*>&
+             const std::vector<mapping_rule::BaseMappingRule<switches_count, keycodes_buffer_size>*>&
              keycode_mapping_rules,
              ActionManager<switches_count, keycodes_buffer_size>* action_manager) :
         switch_reader_(switch_reader), switch_events_generator_(switch_events_generator),

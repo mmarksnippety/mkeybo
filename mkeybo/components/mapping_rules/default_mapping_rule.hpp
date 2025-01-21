@@ -6,7 +6,7 @@
 #include "base_mapping_rule.hpp"
 
 
-namespace mkeybo::keycode_mapping_rule {
+namespace mkeybo::mapping_rule {
 
 
 /**

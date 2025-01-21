@@ -8,7 +8,7 @@
 #include "base_mapping_rule.hpp"
 
 
-namespace mkeybo::keycode_mapping_rule {
+namespace mkeybo::mapping_rule {
 constexpr uint8_t tap_dance_hold_action = std::numeric_limits<uint8_t>::max();
 
 template <size_t switches_count, size_t keycodes_buffer_size>

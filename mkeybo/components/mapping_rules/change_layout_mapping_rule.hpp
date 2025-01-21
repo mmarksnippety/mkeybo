@@ -4,7 +4,7 @@
 #include "base_mapping_rule.hpp"
 
 
-namespace mkeybo::keycode_mapping_rule {
+namespace mkeybo::mapping_rule {
 
 template <size_t switches_count, size_t keycodes_buffer_size>
 class ChangeLayoutMappingRule final : public BaseMappingRule<switches_count, keycodes_buffer_size>
