@@ -1,13 +1,16 @@
 #pragma once
 
-#include "components/mapping_rules.hpp"
-#include "components/usb_reports.hpp"
-#include "mkeybo/components/switch_events.hpp"
-#include "mkeybo/components/switch_reader_matrix.hpp"
-#include "mkeybo/components/actions.hpp"
-#include "mkeybo/components/base.hpp"
-#include "mkeybo/consts.hpp"
+#include "components/mapping_rules/change_layer_mapping_rule.hpp"
+#include "components/mapping_rules/change_layout_mapping_rule.hpp"
+#include "components/mapping_rules/default_mapping_rule.hpp"
+#include "components/mapping_rules/tap_dance_mapping_rule.hpp"
+#include "components/mapping_rules/multi_mapping_rule.hpp"
+#include "components/switch_events.hpp"
+#include "components/switch_readers/matrix_switch_reader.hpp"
+#include "components/actions.hpp"
 #include "components/actions/reboot_actions.hpp"
+#include "components/base.hpp"
+#include "consts.hpp"
 
 
 /**
@@ -52,10 +55,10 @@ SwitchEventsGenerator<switches_count>* create_switch_events_generator()
 }
 
 template <size_t switches_count>
-SwitchReaderMatrix<switches_count>* create_switch_reader_matrix(const SwitchReaderMatrixConfig& config)
+switch_reader::MatrixSwitchReader<switches_count>* create_switch_reader_matrix(
+    const switch_reader::MatrixSwitchReaderConfig& config)
 {
-    return new SwitchReaderMatrix<switches_count>(config.column_start_pin, config.column_count, config.row_start_pin,
-                                                  config.row_count);
+    return new switch_reader::MatrixSwitchReader<switches_count>(config);
 }
 
 template <size_t switches_count, size_t keycodes_buffer_size>

@@ -1,7 +1,8 @@
 #pragma once
 
-#include "mkeybo/components/switch_reader_matrix.hpp"
+#include "mkeybo/components/switch_readers/matrix_switch_reader.hpp"
 #include "mkeybo/components/base.hpp"
+#include "mkeybo/components/switch_readers/direct_switch_reader.hpp"
 #include "status_display_config.hpp"
 #include "hardware/i2c.h"
 
@@ -13,7 +14,7 @@ constexpr mkeybo::KeyboardConfig keyboard_config{
 };
 
 
-constexpr mkeybo::SwitchReaderMatrixConfig switch_reader_config{
+constexpr mkeybo::switch_reader::MatrixSwitchReaderConfig switch_reader_config{
     .column_start_pin = 4, .column_count = 10, .row_start_pin = 16, .row_count = 4};
 
 

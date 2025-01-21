@@ -11,11 +11,7 @@ class SwitchReader
 {
 public:
     virtual ~SwitchReader() = default;
-
-    virtual void update(std::bitset<switches_count>& switches_state)
-    {
-    }
-
+    virtual void update(std::bitset<switches_count>& switches_state)=0;
 };
 
 }

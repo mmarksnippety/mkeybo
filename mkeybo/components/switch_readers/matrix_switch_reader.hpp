@@ -2,7 +2,7 @@
 
 #include <bitset>
 #include "pico/stdlib.h"
-#include "switch_reader.hpp"
+#include "../switch_reader.hpp"
 
 
 /**
@@ -12,9 +12,9 @@
  * state in this column.
  */
 
-namespace mkeybo {
+namespace mkeybo::switch_reader {
 
-struct SwitchReaderMatrixConfig
+struct MatrixSwitchReaderConfig
 {
     uint8_t column_start_pin;
     uint8_t column_count;
@@ -24,7 +24,7 @@ struct SwitchReaderMatrixConfig
 
 
 template <size_t switches_count>
-class SwitchReaderMatrix final : public SwitchReader<switches_count>
+class MatrixSwitchReader final : public SwitchReader<switches_count>
 {
     uint8_t const column_start_pin_;
     uint8_t const column_count_;
@@ -34,25 +34,21 @@ class SwitchReaderMatrix final : public SwitchReader<switches_count>
     uint32_t rows_bit_mask_;
 
 public:
-    explicit SwitchReaderMatrix(
-        const uint8_t column_start_pin,
-        const uint8_t column_count,
-        const uint8_t row_start_pin,
-        const uint8_t row_count) :
-        column_start_pin_(column_start_pin), column_count_(column_count),
-        row_start_pin_(row_start_pin), row_count_(row_count)
+    explicit MatrixSwitchReader(MatrixSwitchReaderConfig const& config) :
+        column_start_pin_(config.column_start_pin), column_count_(config.column_count),
+        row_start_pin_(config.row_start_pin), row_count_(config.row_count)
     {
-        cols_bit_mask_ = (1 << column_count) - 1 << column_start_pin;
-        rows_bit_mask_ = (1 << row_count) - 1 << row_start_pin;
-        for (auto offset = 0; offset < column_count; offset++)
+        cols_bit_mask_ = (1 << column_count_) - 1 << column_start_pin_;
+        rows_bit_mask_ = (1 << row_count_) - 1 << row_start_pin_;
+        for (auto offset = 0; offset < column_count_; offset++)
         {
-            const auto pin = column_start_pin + offset;
+            const auto pin = column_start_pin_ + offset;
             gpio_init(pin);
             gpio_set_dir(pin, GPIO_OUT);
         }
-        for (auto offset = 0; offset < row_count; offset++)
+        for (auto offset = 0; offset < row_count_; offset++)
         {
-            const auto pin = row_start_pin + offset;
+            const auto pin = row_start_pin_ + offset;
             gpio_init(pin);
             gpio_set_dir(pin, GPIO_IN);
         }

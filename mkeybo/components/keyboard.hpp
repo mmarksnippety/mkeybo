@@ -8,7 +8,7 @@
 #include "input_device.hpp"
 #include "keyboard_settings.hpp"
 #include "keycode_event_buffer.hpp"
-#include "mapping_rules.hpp"
+#include "mapping_rules/base_mapping_rule.hpp"
 #include "switch_events.hpp"
 #include "switch_reader.hpp"
 #include "usb_reports.hpp"
