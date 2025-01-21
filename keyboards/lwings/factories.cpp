@@ -72,7 +72,7 @@ auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
             H_K(HID_KEY_6), H_K(HID_KEY_7), H_K(HID_KEY_8), H_K(HID_KEY_9), H_K(HID_KEY_0),
             // 2
             N_K(), N_K(), N_K(), N_K(), N_K(),
-            N_K(), N_K(), N_K(), N_K(), N_K(),
+            N_K(), N_K(), N_K(), N_K(), H_K(HID_KEY_D),
             // 3
             ACTION_K(mkeybo::key_action_reboot_to_bootloader), ACTION_K(mkeybo::key_action_reboot), N_K(), N_K(), N_K(),
             N_K(), H_K (HID_KEY_ARROW_LEFT), H_K(HID_KEY_ARROW_DOWN), H_K(HID_KEY_ARROW_UP), H_K(HID_KEY_ARROW_RIGHT),
@@ -83,7 +83,7 @@ auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
     };
     auto tap_dance_config = new mkeybo::keyboard_rule_settings::TapDanceRuleSettings({
         {H_K(HID_KEY_Z), {{255, H_K(HID_KEY_SHIFT_LEFT)}}},
-        {H_K(HID_KEY_P), {{3, ACTION_K(mkeybo::key_action_reboot)}}}
+        {H_K(HID_KEY_D), {{3, ACTION_K(mkeybo::key_action_reboot)}}}
     });
     auto multi_layer_config = new mkeybo::keyboard_rule_settings::MultiMappingRuleSettings( {
         {{LAYER_K(0), LAYER_K(1)}, LAYER_K(2)}
