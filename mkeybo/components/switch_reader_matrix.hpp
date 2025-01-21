@@ -1,7 +1,6 @@
 #pragma once
 
 #include <bitset>
-#include <iostream>
 #include "pico/stdlib.h"
 #include "switch_reader.hpp"
 

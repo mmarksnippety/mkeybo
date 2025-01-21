@@ -82,7 +82,8 @@ auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
         }
     };
     auto tap_dance_config = new mkeybo::keyboard_rule_settings::TapDanceRuleSettings({
-        {H_K(HID_KEY_Z), {{255, H_K(HID_KEY_SHIFT_LEFT)} } }
+        {H_K(HID_KEY_Z), {{255, H_K(HID_KEY_SHIFT_LEFT)}}},
+        {H_K(HID_KEY_P), {{3, ACTION_K(mkeybo::key_action_reboot)}}}
     });
     auto multi_layer_config = new mkeybo::keyboard_rule_settings::MultiMappingRuleSettings( {
         {{LAYER_K(0), LAYER_K(1)}, LAYER_K(2)}

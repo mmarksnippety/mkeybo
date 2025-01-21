@@ -6,14 +6,17 @@
 #include "factories.hpp"
 #include "keyboard.hpp"
 #include "debug.hpp"
-#include "display.hpp"
+#include "status_display.hpp"
 #include "logo.hpp"
+#include "mkeybo/components/base.hpp"
+#include "mkeybo/components/hid_controller.hpp"
 
 
-mkeybo::Keyboard<keyboard_config.switches_count>* keyboard{};
-Display* display{};
-
+mkeybo::HidController* hid_controller;
+mkeybo::Keyboard<keyboard_config.switches_count>* keyboard;
+StatusDisplay* status_display;
 queue_t event_queue;
+
 
 enum class QueueEventType
 {
@@ -30,7 +33,7 @@ struct QueueEvnet
 auto get_ms_since_boot() { return to_ms_since_boot(get_absolute_time()); }
 
 
-void keyboard_main_task()
+void hid_controller_main_task()
 {
     static auto last_main_task_ts = get_ms_since_boot();
     static auto current_ts = last_main_task_ts;
@@ -41,18 +44,22 @@ void keyboard_main_task()
     }
     if (current_ts - last_main_task_ts >= keyboard->get_settings()->switches_refresh_interval_ms)
     {
-        keyboard->main_task(); // idle < 200us, typically << 300us
-        if (keyboard->get_state()->is_layer_changed())
+        hid_controller->update_input_devices(); // idle < 200us, typically << 300us
+        hid_controller->generate_usb_reports();
+        print_keyboard_info();
+
+        if (keyboard->is_layer_changed())
         {
             constexpr QueueEvnet event = {QueueEventType::layer_change};
             queue_add_blocking(&event_queue, &event);
         }
+
         last_main_task_ts = current_ts;
     }
 }
 
 
-void keyboard_hid_task()
+void hid_controller_usb_task()
 {
     static auto last_main_task_ts = get_ms_since_boot();
     static auto current_ts = last_main_task_ts;
@@ -63,14 +70,14 @@ void keyboard_hid_task()
     }
     if (current_ts - last_main_task_ts >= keyboard->get_settings()->report_send_interval_ms)
     {
-        keyboard->hid_task();
+        hid_controller->hid_task();
         last_main_task_ts = current_ts;
     }
 }
 
 [[noreturn]] void core1_entry()
 {
-    display->display_logo(mkeybo_logo);
+    status_display->display_logo(mkeybo_logo);
 
     while (true)
     {
@@ -78,7 +85,7 @@ void keyboard_hid_task()
         queue_remove_blocking(&event_queue, &event);
         if (event.type == QueueEventType::layer_change)
         {
-            display->show_keyboard_status(keyboard);
+            status_display->show_keyboard_status(keyboard);
         }
     }
 }
@@ -90,10 +97,19 @@ void keyboard_hid_task()
     print_logo();
     keyboard = new Keyboard<keyboard_config.switches_count>();
     keyboard->update_settings(create_keyboard_settings<keyboard_config.switches_count>());
+    hid_controller = new mkeybo::HidController(
+        keyboard_config.keyboard_name,
+        keyboard_config.manufactured_name,
+        {
+            new mkeybo::UsbKeyboardReport{},
+            new mkeybo::UsbCcReport{}
+        },
+        {keyboard}
+        );
 
     queue_init(&event_queue, sizeof(QueueEvnet), 3);
 
-    display = new Display(display_config);
+    status_display = new StatusDisplay(display_config);
     multicore_launch_core1(core1_entry);
     sleep_ms(2000);
     constexpr QueueEvnet event = {QueueEventType::layer_change};
@@ -102,7 +118,7 @@ void keyboard_hid_task()
     while (true)
     {
         tud_task();
-        keyboard_main_task();
-        keyboard_hid_task();
+        hid_controller_main_task();
+        hid_controller_usb_task();
     }
 }

@@ -1,13 +1,14 @@
-#include "display.hpp"
+#include "status_display.hpp"
 #include <textRenderer/12x16_font.h>
 #include <textRenderer/TextRenderer.h>
 #include "hardware/gpio.h"
 #include "hardware/i2c.h"
 #include "keyboard.hpp"
 #include "mkeybo/components/base.hpp"
+#include <iostream>
 
 
-Display::Display(const DisplayConfig& config)
+StatusDisplay::StatusDisplay(const DisplayConfig& config)
 {
     i2c_init(config.i2c, 100 * 1000);
     gpio_set_function(config.sda_pin, GPIO_FUNC_I2C);
@@ -19,18 +20,18 @@ Display::Display(const DisplayConfig& config)
     hardware->setOrientation(false);
 }
 
-Display::~Display()
+StatusDisplay::~StatusDisplay()
 {
     delete hardware;
 }
 
-void Display::display_logo(uint8_t *logo) const
+void StatusDisplay::display_logo(uint8_t *logo) const
 {
     hardware->addBitmapImage(0, 0, 128, 64, logo);
     hardware->sendBuffer();
 }
 
-void Display::show_keyboard_status(mkeybo::Keyboard<keyboard_config.switches_count>* keyboard) const
+void StatusDisplay::show_keyboard_status(mkeybo::Keyboard<keyboard_config.switches_count>* keyboard) const
 {
     constexpr uint8_t line_height = 14;
     uint8_t line_index = 64 - line_height;
@@ -39,7 +40,7 @@ void Display::show_keyboard_status(mkeybo::Keyboard<keyboard_config.switches_cou
     drawText(hardware, font, "layers", 0, 0);
     for (auto layer_index = 0; const auto& layer_settings : keyboard->get_settings()->layers)
     {
-        if (keyboard->get_state()->is_layer_active(layer_index))
+        if (keyboard->is_layer_active(layer_index))
         {
             std::cout << "layer " << layer_settings->name << " is active" << std::endl;
             drawText(hardware, font, layer_settings->name.c_str(), 0, line_index);

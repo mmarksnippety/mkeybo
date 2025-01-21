@@ -1,13 +1,12 @@
 #pragma once
 
-#include "../keyboard_settings.hpp"
-#include "../keyboard_state.hpp"
+
 #include "../base.hpp"
 
 
-namespace mkeybo::key_mapper {
+namespace mkeybo::keycode_mapping_rule {
 
-template <size_t switches_count>
+template <size_t switches_count, size_t keycodes_buffer_size>
 class BaseMappingRule
 {
 public:
@@ -21,7 +20,7 @@ public:
      * If return true, then mapping process must be restarting.
      * Is usefully ex for layer changing or layout changing
      */
-    virtual bool map(KeyboardSettings<switches_count>* keyboard_settings, KeyboardState<switches_count>* keyboard_state)
+    virtual bool map(Keyboard<switches_count, keycodes_buffer_size>* keyboard)
     {
         return false;
     }

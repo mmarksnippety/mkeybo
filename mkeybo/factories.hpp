@@ -1,18 +1,14 @@
 #pragma once
 
-#include "components/usb_reporter.hpp"
-#include "components/key_mapper.hpp"
-#include "components/key_mapper/change_layer_mapping_rule.hpp"
-#include "components/key_mapper/change_layout_mapping_rule.hpp"
-#include "components/key_mapper/default_mapping_rule.hpp"
-#include "components/key_mapper/tap_dance_mapping_rule.hpp"
-#include "components/key_mapper/multi_mapping_rule.hpp"
+#include "components/keycode_mapping_rules.hpp"
+#include "components/usb_reports.hpp"
 #include "mkeybo/components/switch_events.hpp"
 #include "mkeybo/components/switch_reader_matrix.hpp"
 #include "mkeybo/components/actions.hpp"
 #include "mkeybo/components/base.hpp"
 #include "mkeybo/consts.hpp"
 #include "components/actions/reboot_actions.hpp"
+#include "components/keycode_mapping_rules.hpp"
 
 
 /**
@@ -49,11 +45,6 @@
 
 
 namespace mkeybo {
-template <size_t switches_count>
-KeyboardState<switches_count>* create_keyboard_state()
-{
-    return new KeyboardState<switches_count>();
-}
 
 template <size_t switches_count>
 SwitchEventsGenerator<switches_count>* create_switch_events_generator()
@@ -68,35 +59,26 @@ SwitchReaderMatrix<switches_count>* create_switch_reader_matrix(const SwitchRead
                                                   config.row_count);
 }
 
-template <size_t switches_count>
-KeyMapper<switches_count>* create_key_mapper()
+template <size_t switches_count, size_t keycodes_buffer_size>
+std::vector<keycode_mapping_rule::BaseMappingRule<switches_count, keycodes_buffer_size>*> create_keycode_mapping_rules()
 {
-    return new KeyMapper<switches_count>({
-        new key_mapper::DefaultMappingRule<switches_count>{},
-        new key_mapper::TapDanceMappingRule<switches_count>{},
-        new key_mapper::MultiMappingRule<switches_count>{},
-        new key_mapper::ChangeLayoutMappingRule<switches_count>{},
-        new key_mapper::ChangeLayerMappingRule<switches_count>{},
-    });
+    return {
+        new keycode_mapping_rule::DefaultMappingRule<switches_count, keycodes_buffer_size>{},
+        new keycode_mapping_rule::TapDanceMappingRule<switches_count, keycodes_buffer_size>{},
+        new keycode_mapping_rule::MultiMappingRule<switches_count, keycodes_buffer_size>{},
+        new keycode_mapping_rule::ChangeLayoutMappingRule<switches_count, keycodes_buffer_size>{},
+        new keycode_mapping_rule::ChangeLayerMappingRule<switches_count, keycodes_buffer_size>{},
+    };
 }
 
-template <size_t switches_count>
-UsbReportManager<switches_count>* create_usb_reporter_manager()
+template <size_t switches_count, size_t keycodes_buffer_size>
+ActionManager<switches_count, keycodes_buffer_size>* create_action_manager()
 {
-    return new UsbReportManager<switches_count>({
-        new UsbHidKeycodeReport<switches_count>{},
-        new UsbCcKeycodeReport<switches_count>{}
-    });
-}
-
-template <size_t switches_count>
-ActionManager<switches_count>* create_action_manager()
-{
-    return new ActionManager<switches_count>({
+    return new ActionManager<switches_count, keycodes_buffer_size>({
         {Keycode{KeycodeType::action, key_action_reboot_to_bootloader},
-         new actions::RebootToBootloaderAction<switches_count>{}},
+         new actions::RebootToBootloaderAction<switches_count, keycodes_buffer_size>{}},
         {Keycode{KeycodeType::action, key_action_reboot},
-         new actions::RebootAction<switches_count>{}}
+         new actions::RebootAction<switches_count, keycodes_buffer_size>{}}
     });
 }
 

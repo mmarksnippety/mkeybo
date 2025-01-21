@@ -1,80 +1,190 @@
 #pragma once
 
-#include "key_mapper.hpp"
+#include <algorithm>
+#include <bitset>
+#include <limits>
+#include <ranges>
+#include "base.hpp"
+#include "input_device.hpp"
+#include "keyboard_settings.hpp"
+#include "keycode_event_buffer.hpp"
+#include "keycode_mapping_rules.hpp"
 #include "switch_events.hpp"
 #include "switch_reader.hpp"
-#include "usb_reporter.hpp"
+#include "usb_reports.hpp"
 #include "actions.hpp"
-#include "base.hpp"
-#include "pico/unique_id.h"
+#include <iostream>
 
 
 namespace mkeybo {
 
 
-template <size_t switch_count>
-class Keyboard
+template <size_t switches_count, size_t keycodes_buffer_size = 20>
+class Keyboard : public InputDevice
 {
 protected:
-    KeyboardState<switch_count>* state_;
-    SwitchReader<switch_count>* switch_reader_;
-    SwitchEventsGenerator<switch_count>* switch_events_generator_;
-    KeyMapper<switch_count>* key_mapper_;
-    UsbReportManager<switch_count>* usb_report_manager_;
-    ActionManager<switch_count>* action_manager_;
-    KeyboardSettings<switch_count>* settings_{};
-    std::string unique_id_{};
+    std::vector<bool> active_layers_{};
+    std::vector<bool> active_layers_prev_cycle_{};
+    uint8_t active_layout_{};
+    size_t layout_size_{};
+    uint8_t active_layout_prev_cycle_{};
+    std::bitset<switches_count> switch_state_{};
+    std::array<SwitchEvent, switches_count> switch_events_{};
+    KeycodeEventBuffer<keycodes_buffer_size> keycode_events_prev_cycle_{};
+    KeycodeEventBuffer<keycodes_buffer_size> keycode_events_{};
+    LedStatus led_status_{};
+    SwitchReader<switches_count>* switch_reader_;
+    SwitchEventsGenerator<switches_count>* switch_events_generator_;
+    std::vector<keycode_mapping_rule::BaseMappingRule<switches_count, keycodes_buffer_size>*> keycodes_mapping_rules_;
+    ActionManager<switches_count, keycodes_buffer_size>* action_manager_;
+    KeyboardSettings<switches_count>* settings_{};
 
 public:
-    Keyboard(KeyboardState<switch_count>* state, SwitchReader<switch_count>* switch_reader,
-             SwitchEventsGenerator<switch_count>* switch_events_generator,
-             KeyMapper<switch_count>* key_mapper,
-             UsbReportManager<switch_count>* usb_reporter_manager,
-             ActionManager<switch_count>* action_manager) :
-        state_(state), switch_reader_(switch_reader), switch_events_generator_(switch_events_generator),
-        key_mapper_(key_mapper), usb_report_manager_(usb_reporter_manager), action_manager_(action_manager)
+    Keyboard(SwitchReader<switches_count>* switch_reader,
+             SwitchEventsGenerator<switches_count>* switch_events_generator,
+             const std::vector<keycode_mapping_rule::BaseMappingRule<switches_count, keycodes_buffer_size>*>&
+             keycode_mapping_rules,
+             ActionManager<switches_count, keycodes_buffer_size>* action_manager) :
+        switch_reader_(switch_reader), switch_events_generator_(switch_events_generator),
+        keycodes_mapping_rules_(keycode_mapping_rules),
+        action_manager_(action_manager)
     {
     };
 
-    virtual ~Keyboard()
+    ~Keyboard() override
     {
-        delete state_;
         delete switch_reader_;
         delete switch_events_generator_;
-        delete key_mapper_;
-        delete usb_report_manager_;
+        for (auto& keycodes_mapping_rule : keycodes_mapping_rules_)
+        {
+            delete keycodes_mapping_rule;
+        }
         delete settings_;
     };
 
-    KeyboardState<switch_count>* get_state() { return state_; }
+    /**
+     * Settings
+     */
 
-    SwitchReader<switch_count>* get_switch_reader() { return switch_reader_; }
+    KeyboardSettings<switches_count>* get_settings() { return settings_; }
 
-    SwitchEventsGenerator<switch_count>* get_switch_events_generator() { return switch_events_generator_; }
-
-    KeyMapper<switch_count>* get_key_mapper() { return key_mapper_; }
-
-    UsbReportManager<switch_count>* get_usb_reporter_manager() { return usb_report_manager_; }
-
-    KeyboardSettings<switch_count>* get_settings() { return settings_; }
-
-    std::string_view get_unique_id()
-    {
-        if (unique_id_.empty())
-        {
-            constexpr int pico_id_len = 2 * PICO_UNIQUE_BOARD_ID_SIZE_BYTES + 1;
-            char pico_id[2 * PICO_UNIQUE_BOARD_ID_SIZE_BYTES + 1];
-            pico_get_unique_board_id_string(pico_id, pico_id_len);
-            unique_id_ = pico_id;
-        }
-        return unique_id_;
-    }
-
-    void update_settings(KeyboardSettings<switch_count>* settings)
+    void update_settings(KeyboardSettings<switches_count>* settings)
     {
         settings_ = settings;
-        state_->setup_for_settings(settings_);
+        layout_size_ = settings->layouts.size();
+        active_layers_.resize(settings->layers.size());
+        active_layers_prev_cycle_.resize(settings->layers.size());
+        reset();
         on_update_settings();
+    }
+
+    /**
+     * Layers
+     */
+
+    void reset_active_layers() { std::fill(active_layers_.begin(), active_layers_.end(), false); }
+
+    void set_active_layer(const uint8_t layer_index, const bool active = true)
+    {
+        if (layer_index >= active_layers_.size())
+        {
+            return;
+        }
+        active_layers_[layer_index] = active;
+    }
+
+    auto& get_active_layers() { return active_layers_; }
+
+    bool is_layer_active(const uint8_t layer_index) { return active_layers_[layer_index]; }
+
+    [[nodiscard]] bool is_layer_changed() const { return active_layers_prev_cycle_ != active_layers_; }
+
+    /**
+     * Layout
+     */
+
+    void reset_active_layout() { active_layout_ = 0; }
+
+    void set_active_layout(const uint8_t layout_index)
+    {
+        if (layout_index >= layout_size_)
+        {
+            return;
+        }
+        active_layout_ = layout_index;
+    }
+
+    auto get_active_layout() { return active_layout_; }
+
+    [[nodiscard]] bool is_layout_changed() const { return active_layout_prev_cycle_ != active_layout_; }
+
+    /**
+     * Switch state
+     */
+
+    void reset_switch_state() { switch_state_.reset(); }
+
+    auto& get_switch_state() { return switch_state_; }
+
+
+    /**
+     * Switch events
+     */
+
+    void reset_switch_events() { std::fill(switch_events_.begin(), switch_events_.end(), SwitchEvent{}); }
+
+    auto& get_switch_events() { return switch_events_; }
+
+    /**
+     * Keycodes events
+     */
+    void reset_keycode_events() { keycode_events_.reset(); }
+
+    void push_keycode_event(const KeycodeEvent& keycode_event) { keycode_events_.push(keycode_event); }
+
+    void push_keycode_event(const Keycode& keycode, const uint8_t switch_no = std::numeric_limits<uint8_t>::max(),
+                            const KeycodeEventType type = KeycodeEventType::draft,
+                            KeycodeEventPriority priority = KeycodeEventPriority::normal)
+    {
+        keycode_events_.push(keycode, switch_no, type, priority);
+    }
+
+    auto get_filtered_keycode_events(const std::optional<KeycodeType> keycode_type = std::nullopt,
+                                     const std::optional<KeycodeEventType> keycode_event_type = std::nullopt,
+                                     const std::optional<KeycodeEventPriority> keycode_event_priority = std::nullopt)
+    {
+        return keycode_events_.get_filtered_events(keycode_type, keycode_event_type, keycode_event_priority);
+    }
+
+    bool have_keycode_events_changed(const KeycodeType& keycode_type)
+    {
+        return !std::ranges::equal(
+            keycode_events_.get_filtered_events(keycode_type, KeycodeEventType::finalized),
+            keycode_events_prev_cycle_.get_filtered_events(keycode_type, KeycodeEventType::finalized));
+    }
+
+    /**
+     * Led status
+     */
+
+    auto& get_led_status() { return led_status_; }
+
+    void set_led_status(const LedStatus& led_status) { led_status_ = led_status; }
+
+    /**
+     * Life cycle methods
+     */
+
+    void reset()
+    {
+        reset_active_layers();
+        reset_active_layout();
+        reset_switch_state();
+        reset_switch_events();
+        reset_keycode_events();
+        // reset prev cycle states
+        std::fill(active_layers_prev_cycle_.begin(), active_layers_prev_cycle_.end(), false);
+        keycode_events_prev_cycle_.reset();
     }
 
     /**
@@ -86,54 +196,94 @@ public:
      * - Updates the current switch state through the switch reader.
      * - Generates events for switch state transitions using the switch events generator.
      * - Performs key mapping by translating switch events into actionable key events through the key mapper.
-     * - Generates USB HID reports based on the current keycode events state.
      *
      * It is designed to be called repeatedly, typically within a loop, to handle continuous keyboard operations.
      */
-    virtual void main_task()
+    void update() override
     {
-        this->state_->next_cycle();
-        this->switch_reader_->update(this->state_->get_switch_state());
-        this->switch_events_generator_->update(this->settings_, this->state_);
-        on_switch_events_generated();
-        this->key_mapper_->map(this->settings_, this->state_);
-        on_key_mapped();
-        this->usb_report_manager_->generate_reports(this->state_);
-        on_usb_report_ready();
-        this->action_manager_->make_actions(this);
+        reset_state_cycle();
+        update_switch_state();
+        update_switch_events();
+        on_update_switch_events();
+        generate_keycodes();
+        on_generate_keycodes();
+        make_actions(); // TODO: Move actions to HidController
     }
 
-    virtual void hid_task()
+    void reset_state_cycle()
     {
-        if (usb_report_manager_->is_any_report_ready())
+        active_layers_prev_cycle_ = active_layers_;
+        active_layout_prev_cycle_ = active_layout_;
+        copy_keycode_events_to_prev_cycle();
+
+    }
+
+    void copy_keycode_events_to_prev_cycle()
+    {
+        keycode_events_prev_cycle_.reset();
+        std::ranges::for_each(keycode_events_.get_filtered_events(std::nullopt, KeycodeEventType::finalized),
+                              [this](KeycodeEvent& keycode_event)
+                              {
+                                  keycode_events_prev_cycle_.push(keycode_event);
+                              });
+    }
+
+    void update_switch_state()
+    {
+        this->switch_reader_->update(switch_state_);
+    }
+
+    void update_switch_events()
+    {
+        this->switch_events_generator_->update(settings_, switch_state_, switch_events_);
+    }
+
+    void generate_keycodes()
+    {
+        bool mapped = false;
+        reset_active_layers();
+        while (!mapped)
         {
-            if (tud_suspended())
+            reset_keycode_events();
+            mapped = true;
+            for (auto rule : keycodes_mapping_rules_)
             {
-                tud_remote_wakeup();
-            }
-            else
-            {
-                // Send the 1st of report chain, the rest will be sent by tud_hid_report_complete_cb()
-                send_usb_report();
+                if (rule->map(this))
+                {
+                    mapped = false;
+                    break;
+                }
             }
         }
     }
 
-    /**
-     * This method send first ready usb report to host
-     */
-    void send_usb_report() { usb_report_manager_->send_reports(true); }
+    void make_actions()
+    {
+        this->action_manager_->make_actions(this);
+    }
 
-    // some event from livecycle
+    /**
+     *Events callbacks
+     */
+
+    /**
+     * Called when new settings are apply to keyboard
+     */
     virtual void on_update_settings()
     {
     }
 
-    virtual void on_switch_events_generated()
+    /**
+     * Called when switch events are update.
+     */
+    virtual void on_update_switch_events()
     {
     }
 
-    virtual void on_key_mapped()
+    /**
+     * Called when new keycodes are generate
+     */
+    virtual void on_generate_keycodes()
     {
     }
 
@@ -141,32 +291,161 @@ public:
     {
     }
 
-    virtual void on_usb_report_ready()
-    {
-    }
-
-    // that callbacks are called by TinyUSB, see mkeybo/defaults/usb_callbacks.cpp
-    virtual void on_usb_mount()
-    {
-    }
-
-    virtual void on_usb_umount()
-    {
-    }
-
-    virtual void on_usb_suspend()
-    {
-    }
-
-    virtual void on_usb_resume()
-    {
-    }
 
     virtual void on_usb_report_receive(uint8_t const* buffer, uint16_t buffer_length)
     {
-        LedStatus led_status{*buffer};
-        state_->set_led_status(led_status);
+        const LedStatus led_status{*buffer};
+        this->set_led_status(led_status);
         on_led_status_update();
+    }
+
+    /**
+     * Generate usb reports
+     */
+    void generate_usb_reports(const std::vector<UsbReport*>& reports) override
+    {
+        for (const auto& report : reports)
+        {
+            switch (report->keycode_type)
+            {
+            case KeycodeType::hid:
+                conditionally_generate_usb_keyboard_report(reinterpret_cast<UsbKeyboardReport*>(report));
+                continue;
+            case KeycodeType::cc:
+                conditionally_generate_usb_cc_report(reinterpret_cast<UsbCcReport*>(report));
+            default:
+                ; // do nothing
+            };
+        }
+    }
+
+    void conditionally_generate_usb_keyboard_report(UsbKeyboardReport* report)
+    {
+        if (have_keycode_events_changed(KeycodeType::hid))
+        {
+            generate_usb_keyboard_report(report);
+        }
+    }
+
+    void generate_usb_keyboard_report(UsbKeyboardReport* report)
+    {
+        report->status = UsbReportStatus::draft;
+        report->modifiers = 0;
+        report->keycodes.fill(0);
+        generate_usb_keyboard_modifiers(get_keyboard_modifiers_keycodes(KeycodeEventPriority::high), report);
+        generate_usb_keyboard_modifiers(get_keyboard_modifiers_keycodes(KeycodeEventPriority::normal), report);
+        auto index = generate_usb_keyboard_report_regular(
+            get_keyboard_regular_keycodes(KeycodeEventPriority::high), report);
+        generate_usb_keyboard_report_regular(
+            get_keyboard_regular_keycodes(KeycodeEventPriority::normal), report, index);
+        report->status = UsbReportStatus::ready;
+    }
+
+    auto get_keyboard_modifiers_keycodes(KeycodeEventPriority priority)
+    {
+        return this->get_filtered_keycode_events(KeycodeType::hid, KeycodeEventType::finalized, priority) |
+            std::views::filter([](const auto& keycode_event)
+            {
+                return keycode_event.keycode.code >= HID_KEY_CONTROL_LEFT;
+            });
+    }
+
+    auto get_keyboard_regular_keycodes(KeycodeEventPriority priority)
+    {
+        return this->get_filtered_keycode_events(KeycodeType::hid, KeycodeEventType::finalized, priority) |
+            std::views::filter([](const auto& keycode_event)
+            {
+                return static_cast<uint8_t>(keycode_event.keycode.code) < HID_KEY_CONTROL_LEFT;
+            });
+    }
+
+    /**
+     * Modifier are coded as bits.
+     * Luckily all modifiers keycodes are in the same order as the bits in the report
+     *
+     * Modifier name          | code   | bit index
+     * -----------------------+--------+----------
+     * HID_KEY_CONTROL_LEFT   |  0xE0  | 0
+     * HID_KEY_SHIFT_LEFT     |  0xE1  | 1
+     * HID_KEY_ALT_LEFT       |  0xE2  | 2
+     * HID_KEY_GUI_LEFT       |  0xE3  | 3
+     * HID_KEY_CONTROL_RIGHT  |  0xE4  | 4
+     * HID_KEY_SHIFT_RIGHT    |  0xE5  | 5
+     * HID_KEY_ALT_RIGHT      |  0xE6  | 6
+     * HID_KEY_GUI_RIGHT      |  0xE7  | 7
+     */
+    template <class KeycodeEvnetView>
+    void generate_usb_keyboard_modifiers(KeycodeEvnetView&& modifiers_keycodes, UsbKeyboardReport* report)
+    {
+        for (auto& keycode_event : modifiers_keycodes)
+        {
+            // This special case taken from QMK. This coed is mixed modifiers bits and standard keycode
+            // first 8bit is a code, higher 8 bits is a modifier bits (no key code of ex shift key)
+            if (keycode_event.keycode.code >= std::numeric_limits<uint8_t>::max())
+            {
+                const auto modifier_bits = static_cast<uint8_t>(keycode_event.keycode.code >> 8);
+                report->modifiers |= modifier_bits;
+            }
+            else
+            {
+                auto bit_index = keycode_event.keycode.code - HID_KEY_CONTROL_LEFT;
+                report->modifiers |= 1 << bit_index;
+            }
+        }
+    }
+
+    template <class KeycodeEventView>
+    uint8_t generate_usb_keyboard_report_regular(KeycodeEventView&& regular_keycodes, UsbKeyboardReport* report,
+                                                    const uint8_t start_keycode_index = 0)
+    {
+        uint8_t keycode_index = start_keycode_index;
+        for (auto& keycode_event : regular_keycodes)
+        {
+            // more than 6 keys, go to phantom mode
+            if (keycode_index > report->keycodes.size())
+            {
+                report->keycodes.fill(1);
+                break;
+            }
+            report->keycodes[keycode_index] = static_cast<uint8_t>(keycode_event.keycode.code);
+            keycode_index++;
+        }
+        return keycode_index;
+    }
+
+    void conditionally_generate_usb_cc_report(UsbCcReport* report)
+    {
+        if (have_keycode_events_changed(KeycodeType::cc))
+        {
+            generate_usb_cc_report(report);
+        }
+    }
+
+    void generate_usb_cc_report(UsbCcReport* report)
+    {
+        report->status = UsbReportStatus::draft;
+        report->keycode = 0;
+        generate_usb_cc_report_keycode(get_cc_keycodes(KeycodeEventPriority::high), report);
+        if (report->keycode == 0)
+        {
+            generate_usb_cc_report_keycode(get_cc_keycodes(KeycodeEventPriority::normal), report);
+        }
+        report->status = UsbReportStatus::ready;
+    }
+
+    auto get_cc_keycodes(KeycodeEventPriority priority)
+    {
+        return this->get_filtered_keycode_events(KeycodeType::cc, KeycodeEventType::finalized, priority);
+    }
+
+    template <class KeycodeEvnetView>
+    void generate_usb_cc_report_keycode(KeycodeEvnetView&& keycodes_views, UsbCcReport* report)
+    {
+        auto keycode_event_it = keycodes_views.begin();
+        if (keycode_event_it != keycodes_views.end())
+        {
+            report->keycode = (*keycode_event_it).keycode.code;
+        }
     }
 };
 

@@ -1,10 +1,8 @@
 #include "config.hpp"
-#include "mkeybo/components/keyboard.hpp"
-#include "mkeybo/components/base.hpp"
+#include "mkeybo/components/hid_controller.hpp"
 #include "tusb.h"
 
-extern mkeybo::Keyboard<keyboard_config.switches_count>* keyboard;
-
+extern mkeybo::HidController* hid_controller;
 
 /**
  * Implementation of callback defined in /external/pico-sdk/lib/tinyusb/src/device/usbd.h
@@ -17,7 +15,7 @@ extern mkeybo::Keyboard<keyboard_config.switches_count>* keyboard;
  * https://www.beyondlogic.org/usbnutshell/usb5.shtml#DeviceDescriptors
  *
  * A combination of interfaces must have a unique product id, since PC will save device driver after the
- * first plug. Same VID/PID with different interface e.g MSC (first), then CDC (later) will possibly cause
+ * first plug. Same VID/PID with different interface e.g. MSC (first), then CDC (later) will possibly cause
  * system error on PC.
  *
  * Auto ProductID layout's Bitmap:
@@ -119,7 +117,7 @@ uint8_t const* tud_descriptor_device_qualifier_cb(void)
 
 // Invoked when received GET OTHER SEED CONFIGURATION DESCRIPTOR request
 // Application return pointer to descriptor, whose contents must exist long enough for transfer to complete
-// Configuration descriptor in the other speed e.g if high speed then this is for full speed and vice versa
+// Configuration descriptor in the other speed e.g. if high speed then this is for full speed and vice versa
 uint8_t const* tud_descriptor_other_speed_configuration_cb(uint8_t index)
 {
     (void)index; // for multiple configurations
@@ -142,18 +140,17 @@ uint8_t const* tud_descriptor_configuration_cb(const uint8_t index)
     return desc_configuration;
 }
 
+//TODO: Remove this redundant table.
 /**
  * String Descriptors
  * array of pointer to string descriptors:
- *
- * char const *string_desc_arr[] = {
- *     (const char[]){0x09, 0x04},  // 0: is supported language is English (0x0409)
- *     KEYBOARD_MANUFACTURER,       // 1: Manufacturer
- *     KEYBOARD_MODEL,              // 2: Product
- *     "0"                          // 3: Pico board id, load in runtime
- * };
  */
-// extern char const* string_desc_arr[4];
+ char const *string_desc_arr[] = {
+     (const char[]){0x09, 0x04},  // 0: is supported language is English (0x0409)
+     nullptr,       // 1: Manufacturer
+     nullptr,       // 2: Product
+     nullptr       // 3: Pico board id, load in runtime
+ };
 
 static uint16_t desc_str[32];
 
@@ -161,11 +158,12 @@ static uint16_t desc_str[32];
 // Application return pointer to descriptor, whose contents must exist long enough for transfer to complete
 uint16_t const* tud_descriptor_string_cb(const uint8_t index, const uint16_t langid)
 {
-    // std::cout << "tud_descriptor_string_cb: " << std::to_string(index) << ", " << langid << std::endl;
     (void)langid;
-    if (string_desc_arr[3] == "0")
+    if (string_desc_arr[1] == nullptr)
     {
-        string_desc_arr[3] = keyboard->get_unique_id().data();
+        string_desc_arr[1] = hid_controller->get_manufactured_name().data();
+        string_desc_arr[2] = hid_controller->get_device_name().data();
+        string_desc_arr[3] = hid_controller->get_unique_id().data();
     }
     uint8_t chr_count;
     if (index == 0)

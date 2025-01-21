@@ -4,11 +4,13 @@
 #include <limits>
 #include "base.hpp"
 #include "keyboard_settings.hpp"
-#include "keyboard_state.hpp"
 
 
 namespace mkeybo {
 
+/**
+ * SwitchEventGenerator, make a state of switch in timeline.
+ */
 template <size_t switches_count>
 class SwitchEventsGenerator
 {
@@ -16,11 +18,9 @@ public:
     SwitchEventsGenerator() = default;
     ~SwitchEventsGenerator() = default;
 
-    void update(const KeyboardSettings<switches_count>* keyboard_settings,
-                KeyboardState<switches_count>* keyboard_state)
+    void update(const KeyboardSettings<switches_count>* keyboard_settings, SwitchState<switches_count>& switch_state,
+                std::array<SwitchEvent, switches_count>& switch_events)
     {
-        auto &switch_state = keyboard_state->get_switch_state();
-        auto& switch_events = keyboard_state->get_switch_events();
         for (size_t switch_no = 0; switch_no < switches_count; switch_no++)
         {
             update_switch_event(keyboard_settings, switch_state[switch_no], switch_events[switch_no]);
@@ -72,7 +72,8 @@ public:
                     event.released = 0;
                     event.tap_dance = 0;
                     event.hold = false;
-                } else
+                }
+                else
                 {
                     event.type = SwitchEventType::released;
                     event.pressed = 0;

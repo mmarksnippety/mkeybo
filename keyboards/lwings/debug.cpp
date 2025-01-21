@@ -6,9 +6,11 @@
 #include "keyboard.hpp"
 #include "mkeybo/debug.hpp"
 #include <algorithm>
+#include "mkeybo/components/hid_controller.hpp"
 
 
 extern Keyboard<keyboard_config.switches_count>* keyboard;
+extern mkeybo::HidController* hid_controller;
 
 
 void print_logo()
@@ -37,11 +39,12 @@ void print_logo()
 bool is_any_info_to_print()
 {
     bool is_any_info_to_print = false;
-    is_any_info_to_print |= std::ranges::any_of(keyboard->get_state()->get_switch_events(), [](const auto& sw_event)
+    is_any_info_to_print |= std::ranges::any_of(keyboard->get_switch_events(), [](const auto& sw_event)
     {
         return sw_event.type != mkeybo::SwitchEventType::idle;
     });
-    is_any_info_to_print |= !keyboard->get_state()->get_filtered_keycode_events().empty();
+    is_any_info_to_print |= !keyboard->get_filtered_keycode_events().empty();
+    is_any_info_to_print |= hid_controller->is_any_usb_report_ready();
     return is_any_info_to_print;
 }
 
@@ -50,7 +53,7 @@ void print_keyboard_info()
     if (!is_any_info_to_print())
         return;
     std::cout << std::endl << std::endl;
-    for (auto index = 0; const auto& sw_event : keyboard->get_state()->get_switch_events())
+    for (auto index = 0; const auto& sw_event : keyboard->get_switch_events())
     {
         if (sw_event.type != mkeybo::SwitchEventType::idle)
         {
@@ -64,24 +67,22 @@ void print_keyboard_info()
         }
         index++;
     }
-    for (auto& key_event : keyboard->get_state()->get_filtered_keycode_events())
+    for (auto& key_event : keyboard->get_filtered_keycode_events())
     {
         std::cout << "event|" << mkeybo::get_keycode_event_type_name(key_event.type) << "|" << key_event.keycode
             << std::endl;
     }
-    /*
-    for (const auto& [keycode_type, report] : keyboard->get_state()->get_usb_reports())
+    for (const auto report : hid_controller->get_usb_report())
     {
-        if (keycode_type == mkeybo::KeycodeType::hid && report->status == mkeybo::UsbReportStatus::ready)
+        if (mkeybo::UsbReportStatus::ready == report->status && mkeybo::KeycodeType::hid == report->keycode_type)
         {
-            const auto hid_report = reinterpret_cast<const mkeybo::UsbHidKeycodeReport*>(report);
-            std::cout << "report|" << std::to_string(hid_report->modifiers) << "| ";
-            for (auto& keycode : hid_report->keycodes)
+            const auto keyboard_report = reinterpret_cast<const mkeybo::UsbKeyboardReport*>(report);
+            std::cout << "report|" << std::to_string(keyboard_report->modifiers) << "| ";
+            for (auto& keycode : keyboard_report->keycodes)
             {
                 std::cout << std::to_string(keycode) << " ";
             }
             std::cout << "|" << std::endl;
         }
     }
-    */
 }

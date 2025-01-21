@@ -14,13 +14,13 @@
 namespace mkeybo {
 
 
-template <size_t switches_count>
+template <size_t switches_count, size_t keycodes_buffer_size>
 class ActionManager
 {
-    std::map<Keycode, actions::BaseAction<switches_count>*> actions{};
+    std::map<Keycode, actions::BaseAction<switches_count, keycodes_buffer_size>*> actions{};
 
 public:
-    explicit ActionManager(const std::map<Keycode, actions::BaseAction<switches_count>*>& actions) :
+    explicit ActionManager(const std::map<Keycode, actions::BaseAction<switches_count, keycodes_buffer_size>*>& actions) :
         actions(actions)
     {
     }
@@ -33,9 +33,9 @@ public:
         }
     }
 
-    void make_actions(Keyboard<switches_count>* keyboard)
+    void make_actions(Keyboard<switches_count, keycodes_buffer_size>* keyboard)
     {
-        for (auto& keycode_event : keyboard->get_state()->get_filtered_keycode_events(
+        for (auto& keycode_event : keyboard->get_filtered_keycode_events(
                  KeycodeType::action, KeycodeEventType::finalized))
         {
             auto action_it = actions.find(keycode_event.keycode);

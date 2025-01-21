@@ -3,7 +3,7 @@
 
 #include <cstdint>
 #include <string>
-#include <array>
+#include <bitset>
 
 
 namespace mkeybo {
@@ -136,7 +136,14 @@ struct KeyboardConfig
     std::string manufactured_name{};
 };
 
-template <size_t switch_count> class Keyboard;
+// forward declaration
 
+class HidController;
+
+template <size_t switches_count, size_t keycodes_buffer_size>
+class Keyboard;
+
+template <size_t switches_count>
+using SwitchState = std::bitset<switches_count>;
 
 }

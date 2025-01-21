@@ -2,7 +2,7 @@
 
 #include "mkeybo/components/switch_reader_matrix.hpp"
 #include "mkeybo/components/base.hpp"
-#include "display_config.hpp"
+#include "status_display_config.hpp"
 #include "hardware/i2c.h"
 
 
@@ -25,13 +25,4 @@ constexpr DisplayConfig display_config
     .address = 0x3c,
     .width = 128,
     .height = 64,
-};
-
-
-//TODO: make it better :(, move it usb_descriptor?
-inline char const* string_desc_arr[] = {
-    (const char[]){0x09, 0x04}, // 0: is supported language is English (0x0409)
-    keyboard_config.manufactured_name.c_str(), // 1: Manufacturer
-    keyboard_config.keyboard_name.c_str(), // 2: Product
-    "0" // 3: Pico board id, load in runtime
 };
