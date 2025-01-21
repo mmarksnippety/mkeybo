@@ -47,3 +47,4 @@ add_subdirectory(external/pico-ssd1306)
 # Keyboards
 #
 add_subdirectory(keyboards/lwings)
+add_subdirectory(keyboards/boomeplanck)
