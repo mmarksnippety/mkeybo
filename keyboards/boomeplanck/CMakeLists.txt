@@ -11,6 +11,7 @@ target_link_libraries(boomeplanck
         hardware_pio
         hardware_timer
         hardware_clocks
+        hardware_pwm
         pico_stdlib
         pico_unique_id
         pico_multicore

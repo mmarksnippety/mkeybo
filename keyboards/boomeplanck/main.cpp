@@ -2,15 +2,13 @@
 #include "config.hpp"
 #include "settings.hpp"
 #include "keyboard.hpp"
+#include "utils.hpp"
 #include "mkeybo/components/base.hpp"
 #include "mkeybo/components/hid_controller.hpp"
 
 
 mkeybo::HidController* hid_controller;
 mkeybo::Keyboard<keyboard_config.switches_count>* keyboard;
-
-
-auto get_ms_since_boot() { return to_ms_since_boot(get_absolute_time()); }
 
 
 void hid_controller_main_task()
