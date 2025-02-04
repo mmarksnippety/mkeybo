@@ -82,15 +82,9 @@ void print_keyboard_info()
     }
     for (const auto report : hid_controller->get_usb_report())
     {
-        if (mkeybo::UsbReportStatus::ready == report->status && mkeybo::KeycodeType::hid == report->keycode_type)
+        if (mkeybo::UsbReportStatus::ready == report->status)
         {
-            const auto keyboard_report = reinterpret_cast<const mkeybo::UsbKeyboardReport*>(report);
-            std::cout << "report|" << std::to_string(keyboard_report->modifiers) << "| ";
-            for (auto& keycode : keyboard_report->keycodes)
-            {
-                std::cout << std::to_string(keycode) << " ";
-            }
-            std::cout << "|" << std::endl;
+            std::cout << report->to_string() << std::endl;
         }
     }
 }

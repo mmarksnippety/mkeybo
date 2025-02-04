@@ -18,8 +18,8 @@ void hid_controller_main_task()
     current_ts = get_ms_since_boot();
     if (current_ts - last_main_task_ts >= keyboard->get_settings()->switches_refresh_interval_ms)
     {
-        hid_controller->update_input_devices();
-        hid_controller->generate_usb_reports();
+        hid_controller->update_state();
+        hid_controller->update_usb_reports();
         last_main_task_ts = current_ts;
     }
 }
@@ -43,14 +43,10 @@ void hid_controller_usb_task()
     stdio_init_all();
     tud_init(0);
     keyboard = new Keyboard<keyboard_config.switches_count>();
-    keyboard->update_settings(create_keyboard_settings<keyboard_config.switches_count>());
+    keyboard->set_settings(create_keyboard_settings<keyboard_config.switches_count>());
     hid_controller = new mkeybo::HidController(
         keyboard_config.keyboard_name,
         keyboard_config.manufactured_name,
-        {
-            new mkeybo::UsbKeyboardReport{},
-            new mkeybo::UsbCcReport{}
-        },
         {keyboard}
         );
     while (true)

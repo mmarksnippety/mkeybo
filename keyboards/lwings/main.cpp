@@ -11,6 +11,8 @@
 #include "mkeybo/components/base.hpp"
 #include "mkeybo/components/hid_controller.hpp"
 
+#include <iomanip>
+#include <iostream>
 
 mkeybo::HidController* hid_controller;
 mkeybo::Keyboard<keyboard_config.switches_count>* keyboard;
@@ -44,10 +46,9 @@ void hid_controller_main_task()
     }
     if (current_ts - last_main_task_ts >= keyboard->get_settings()->switches_refresh_interval_ms)
     {
-        hid_controller->update_input_devices(); // idle < 200us, typically << 300us
-        hid_controller->generate_usb_reports();
-        print_keyboard_info();
-
+        hid_controller->update_state(); // idle < 200us, typically << 300us
+        hid_controller->update_usb_reports();
+        // print_keyboard_info();
         if (keyboard->is_layer_changed())
         {
             constexpr QueueEvnet event = {QueueEventType::layer_change};
@@ -93,23 +94,17 @@ void hid_controller_usb_task()
 [[noreturn]] int main()
 {
     stdio_init_all();
-    tud_init(0);
     print_logo();
     keyboard = new Keyboard<keyboard_config.switches_count>();
-    keyboard->update_settings(create_keyboard_settings<keyboard_config.switches_count>());
+    keyboard->set_settings(create_keyboard_settings<keyboard_config.switches_count>());
     hid_controller = new mkeybo::HidController(
         keyboard_config.keyboard_name,
         keyboard_config.manufactured_name,
-        {
-            new mkeybo::UsbKeyboardReport{},
-            new mkeybo::UsbCcReport{}
-        },
         {keyboard}
         );
-
-    queue_init(&event_queue, sizeof(QueueEvnet), 3);
-
     status_display = new StatusDisplay(display_config);
+    tud_init(0);
+    queue_init(&event_queue, sizeof(QueueEvnet), 3);
     multicore_launch_core1(core1_entry);
     sleep_ms(2000);
     constexpr QueueEvnet event = {QueueEventType::layer_change};

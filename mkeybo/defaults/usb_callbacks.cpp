@@ -32,8 +32,9 @@ void tud_hid_report_complete_cb(uint8_t instance, uint8_t const* report, uint16_
     hid_controller->send_usb_report();
 }
 
-uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t report_type, uint8_t* buffer,
-                               uint16_t reqlen)
+uint16_t tud_hid_get_report_cb(
+    uint8_t instance, uint8_t report_id, hid_report_type_t report_type, uint8_t* buffer,
+    uint16_t reqlen)
 {
     // TODO not Implemented
     // (void)instance;
@@ -44,19 +45,13 @@ uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_t
     return 0;
 }
 
-void tud_hid_set_report_cb(uint8_t const instance, const uint8_t report_id, const hid_report_type_t report_type,
-                           uint8_t const* buffer, const uint16_t bufsize)
+void tud_hid_set_report_cb(
+    uint8_t const instance, const uint8_t report_id, const hid_report_type_t report_type,
+    uint8_t const* buffer, const uint16_t bufsize)
 {
-    // if (report_type == HID_REPORT_TYPE_OUTPUT)
-    // {
-    //     // Set keyboard LED e.g Capslock, Numlock etc...
-    //     if (report_id == static_cast<uint8_t>(mkeybo::KeycodeType::hid))
-    //     {
-    //         if (bufsize < 1)
-    //         {
-    //             return;
-    //         }
-    //         keyboard->on_usb_report_receive(buffer, bufsize);
-    //     }
-    // }
+    if (bufsize < 1 or report_type != HID_REPORT_TYPE_INPUT)
+    {
+        return;
+    }
+    hid_controller->on_usb_report_receive(instance, report_id, report_type, buffer, bufsize);
 }

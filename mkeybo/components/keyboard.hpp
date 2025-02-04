@@ -23,6 +23,7 @@ template <size_t switches_count, size_t keycodes_buffer_size = 20>
 class Keyboard : public InputDevice
 {
 protected:
+    uint8_t start_report_id {0};
     std::vector<bool> active_layers_{};
     std::vector<bool> active_layers_prev_cycle_{};
     uint8_t active_layout_{};
@@ -68,7 +69,7 @@ public:
 
     KeyboardSettings<switches_count>* get_settings() { return settings_; }
 
-    void update_settings(KeyboardSettings<switches_count>* settings)
+    void set_settings(KeyboardSettings<switches_count>* settings)
     {
         settings_ = settings;
         layout_size_ = settings->layouts.size();
@@ -95,7 +96,7 @@ public:
 
     auto& get_active_layers() { return active_layers_; }
 
-    bool is_layer_active(const uint8_t layer_index) { return active_layers_[layer_index]; }
+    bool is_layer_active(const uint8_t layer_index) { return active_layers_[layer_index] == true; }
 
     [[nodiscard]] bool is_layer_changed() const { return active_layers_prev_cycle_ != active_layers_; }
 
@@ -199,7 +200,7 @@ public:
      *
      * It is designed to be called repeatedly, typically within a loop, to handle continuous keyboard operations.
      */
-    void update() override
+    void update_state() override
     {
         reset_state_cycle();
         update_switch_state();
@@ -291,32 +292,36 @@ public:
     {
     }
 
-
-    virtual void on_usb_report_receive(uint8_t const* buffer, uint16_t buffer_length)
+    void on_usb_report_receive(const uint8_t instance, const uint8_t report_id, const hid_report_type_t report_type,
+        const uint8_t* buffer, const uint16_t bufsize) override
     {
-        const LedStatus led_status{*buffer};
-        this->set_led_status(led_status);
-        on_led_status_update();
+        if (report_id == start_report_id)
+        {
+            const LedStatus led_status{*buffer};
+            this->set_led_status(led_status);
+            on_led_status_update();
+        }
+    }
+
+    /**
+     * Usb reports descriptions
+     */
+
+    uint8_t setup_usb_reports(std::vector<UsbReport*>& reports, uint8_t start_report_id) override
+    {
+        this->start_report_id = start_report_id;
+        reports.push_back(new UsbKeyboardReport(start_report_id));
+        reports.push_back(new UsbCcReport(start_report_id + 1));
+        return start_report_id + 2;
     }
 
     /**
      * Generate usb reports
      */
-    void generate_usb_reports(const std::vector<UsbReport*>& reports) override
+    void update_usb_reports(std::vector<UsbReport*>& reports) override
     {
-        for (const auto& report : reports)
-        {
-            switch (report->keycode_type)
-            {
-            case KeycodeType::hid:
-                conditionally_generate_usb_keyboard_report(reinterpret_cast<UsbKeyboardReport*>(report));
-                continue;
-            case KeycodeType::cc:
-                conditionally_generate_usb_cc_report(reinterpret_cast<UsbCcReport*>(report));
-            default:
-                ; // do nothing
-            };
-        }
+        conditionally_generate_usb_keyboard_report(reinterpret_cast<UsbKeyboardReport*>(reports[start_report_id - 1]));
+        conditionally_generate_usb_cc_report(reinterpret_cast<UsbCcReport*>(reports[start_report_id]));
     }
 
     void conditionally_generate_usb_keyboard_report(UsbKeyboardReport* report)

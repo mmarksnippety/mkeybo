@@ -1,6 +1,8 @@
 #pragma once
 
 #include <array>
+#include <sstream>
+#include <iostream>
 #include "base.hpp"
 #include "tusb.h"
 
@@ -8,8 +10,7 @@
 namespace mkeybo {
 
 /**
- * Usb reports.
- * That components are only DTO objects with send method
+ * Usb reports, data container, description and sending.
  */
 
 enum class UsbReportStatus : uint8_t
@@ -28,11 +29,11 @@ protected:
     virtual void send_report_() = 0;
 
 public:
-    KeycodeType keycode_type;
+    uint8_t report_id;
     UsbReportStatus status = UsbReportStatus::draft;
 
-    explicit UsbReport(const KeycodeType keycode_type) :
-        keycode_type(keycode_type)
+    explicit UsbReport(const uint8_t index) :
+        report_id(index)
     {
     }
 
@@ -46,6 +47,9 @@ public:
         status = UsbReportStatus::sent;
     }
 
+    virtual std::vector<uint8_t> get_report_description() = 0;
+
+    [[nodiscard]] virtual std::string to_string() const = 0;
 };
 
 /**
@@ -58,19 +62,41 @@ class UsbKeyboardReport final : public UsbReport
 {
     void send_report_() override
     {
-        tud_hid_keyboard_report(static_cast<uint8_t>(keycode_type), modifiers, keycodes.data());
+        tud_hid_keyboard_report(report_id, modifiers, keycodes.data());
     }
 
 public:
-    using UsbReport::keycode_type;
     using UsbReport::status;
     uint8_t modifiers = 0;
     std::array<uint8_t, 6> keycodes{};
 
-    explicit UsbKeyboardReport() :
-        UsbReport(KeycodeType::hid)
+    explicit UsbKeyboardReport(const uint8_t index) :
+        UsbReport(index)
     {
     }
+
+    std::vector<uint8_t> get_report_description() override
+    {
+        std::cout << "report_id: " << std::to_string(report_id) << std::endl;
+        return {TUD_HID_REPORT_DESC_KEYBOARD(HID_REPORT_ID(report_id))};
+    }
+
+    [[nodiscard]] std::string to_string() const override
+    {
+        std::ostringstream oss;
+        oss << "UsbKeyboardReport {"
+            << "report_id: " << static_cast<int>(report_id) << ", "
+            << "status: " << static_cast<int>(status) << ", "
+            << "modifiers: " << static_cast<int>(modifiers) << ", "
+            << "keycodes: [ ";
+        for (const auto& key : keycodes)
+        {
+            oss << std::to_string(key) << " ";
+        }
+        oss << "] }";
+        return oss.str();
+    }
+
 };
 
 
@@ -82,18 +108,35 @@ class UsbCcReport final : public UsbReport
 {
     void send_report_() override
     {
-        tud_hid_report(static_cast<uint8_t>(keycode_type), &keycode, 2);
+        tud_hid_report(report_id, &keycode, 2);
     }
 
 public:
-    using UsbReport::keycode_type;
     using UsbReport::status;
     uint16_t keycode{};
 
-    explicit UsbCcReport() :
-        UsbReport(KeycodeType::cc)
+    explicit UsbCcReport(const uint8_t index) :
+        UsbReport(index)
     {
     }
+
+    std::vector<uint8_t> get_report_description() override
+    {
+        std::cout << "report_id: " << std::to_string(report_id) << std::endl;
+        return {TUD_HID_REPORT_DESC_CONSUMER(HID_REPORT_ID(report_id))};
+    }
+
+    [[nodiscard]] std::string to_string() const override
+    {
+        std::ostringstream oss;
+        oss << "UsbCcReport { "
+            << "report_id: " << static_cast<int>(report_id) << ", "
+            << "status: " << static_cast<int>(status) << ", "
+            << "keycode: " << keycode
+            << " }";
+        return oss.str();
+    }
+
 };
 
 
