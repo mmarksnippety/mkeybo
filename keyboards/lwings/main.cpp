@@ -10,7 +10,7 @@
 #include "logo.hpp"
 #include "mkeybo/components/base.hpp"
 #include "mkeybo/components/hid_controller.hpp"
-
+#include "mkeybo/factories.hpp"
 #include <iomanip>
 #include <iostream>
 
@@ -46,8 +46,7 @@ void hid_controller_main_task()
     }
     if (current_ts - last_main_task_ts >= keyboard->get_settings()->switches_refresh_interval_ms)
     {
-        hid_controller->update_state(); // idle < 200us, typically << 300us
-        hid_controller->update_usb_reports();
+        hid_controller->main_task();
         // print_keyboard_info();
         if (keyboard->is_layer_changed())
         {
@@ -71,7 +70,7 @@ void hid_controller_usb_task()
     }
     if (current_ts - last_main_task_ts >= keyboard->get_settings()->report_send_interval_ms)
     {
-        hid_controller->hid_task();
+        hid_controller->usb_task();
         last_main_task_ts = current_ts;
     }
 }
@@ -100,7 +99,8 @@ void hid_controller_usb_task()
     hid_controller = new mkeybo::HidController(
         keyboard_config.keyboard_name,
         keyboard_config.manufactured_name,
-        {keyboard}
+        {keyboard},
+        mkeybo::create_action_manager()
         );
     status_display = new StatusDisplay(display_config);
     tud_init(0);

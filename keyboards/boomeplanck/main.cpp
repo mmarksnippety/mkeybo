@@ -5,6 +5,7 @@
 #include "utils.hpp"
 #include "mkeybo/components/base.hpp"
 #include "mkeybo/components/hid_controller.hpp"
+#include "mkeybo/factories.hpp"
 
 
 mkeybo::HidController* hid_controller;
@@ -18,8 +19,7 @@ void hid_controller_main_task()
     current_ts = get_ms_since_boot();
     if (current_ts - last_main_task_ts >= keyboard->get_settings()->switches_refresh_interval_ms)
     {
-        hid_controller->update_state();
-        hid_controller->update_usb_reports();
+        hid_controller->main_task();
         last_main_task_ts = current_ts;
     }
 }
@@ -32,7 +32,7 @@ void hid_controller_usb_task()
     current_ts = get_ms_since_boot();
     if (current_ts - last_main_task_ts >= keyboard->get_settings()->report_send_interval_ms)
     {
-        hid_controller->hid_task();
+        hid_controller->usb_task();
         last_main_task_ts = current_ts;
     }
 }
@@ -47,7 +47,8 @@ void hid_controller_usb_task()
     hid_controller = new mkeybo::HidController(
         keyboard_config.keyboard_name,
         keyboard_config.manufactured_name,
-        {keyboard}
+        {keyboard},
+        mkeybo::create_action_manager()
         );
     while (true)
     {

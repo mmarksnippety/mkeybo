@@ -14,8 +14,7 @@ public:
         mkeybo::Keyboard<switches_count>(
             mkeybo::create_switch_reader_matrix<switches_count>(switch_reader_config),
             mkeybo::create_switch_events_generator<switches_count>(),
-            mkeybo::create_keycode_mapping_rules<switches_count, keycodes_buffer_size>(),
-            mkeybo::create_action_manager<switches_count, keycodes_buffer_size>()
+            mkeybo::create_keycode_mapping_rules<switches_count, keycodes_buffer_size>()
             )
     {
     }

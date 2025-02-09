@@ -2,7 +2,6 @@
 
 #include "config.hpp"
 #include "mkeybo/factories.hpp"
-#include "mkeybo/consts.hpp"
 #include "mkeybo/components/keyboard_settings.hpp"
 #include "mkeybo/components/keyboard_rule_settings/tap_dance_rule_settings.hpp"
 #include "mkeybo/components/keyboard_rule_settings/multi_mapping_rule_settings.hpp"
@@ -83,9 +82,9 @@ auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
             // 0 ~ 11
             N_K(), N_K(), N_K(), N_K(),
             N_K(), N_K(), N_K(), N_K(),
-            N_K(), N_K(), N_K(), ACTION_K(mkeybo::key_action_reboot),
+            N_K(), N_K(), N_K(), ACTION_K(mkeybo::actions::action_reboot_id),
             // 12 - 23
-            ACTION_K(mkeybo::key_action_reboot_to_bootloader), N_K(), N_K(), N_K(),
+            ACTION_K(mkeybo::actions::action_reboot_to_bootloader_id), N_K(), N_K(), N_K(),
             N_K(), N_K(), N_K(), CC_K(HID_USAGE_CONSUMER_BRIGHTNESS_DECREMENT),
             CC_K(HID_USAGE_CONSUMER_BRIGHTNESS_INCREMENT), N_K(), N_K(), N_K(),
             // 24 ~ 35
