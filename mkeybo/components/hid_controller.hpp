@@ -7,6 +7,7 @@
 #include <algorithm>
 #include "usb_reports.hpp"
 #include "input_device.hpp"
+#include "actions.hpp"
 #include "pico/unique_id.h"
 
 namespace mkeybo {
@@ -23,11 +24,13 @@ protected:
     std::vector<uint8_t> usb_reports_description{};
     std::vector<uint8_t> usb_configuration_description{};
     std::vector<InputDevice*> input_devices{};
+    actions::ActionManager* action_manager{};
 
 public:
     HidController(const std::string_view device_name, const std::string_view manufactured_name,
-                  const std::vector<InputDevice*>& input_devices) :
-        device_name(device_name), manufactured_name(manufactured_name), input_devices(input_devices)
+                  const std::vector<InputDevice*>& input_devices, actions::ActionManager* action_manager) :
+        device_name(device_name), manufactured_name(manufactured_name), input_devices(input_devices),
+        action_manager(action_manager)
     {
         setup_usb_reports();
         setup_usb_configuration_description();
@@ -81,7 +84,7 @@ public:
         return std::ranges::any_of(usb_reports, [](const auto& report) { return report->is_report_ready(); });
     }
 
-    void hid_task()
+    void usb_task()
     {
         if (is_any_usb_report_ready())
         {
@@ -95,6 +98,24 @@ public:
                 send_usb_report(true);
             }
         }
+    }
+
+    /**
+     * Executes the main task of the HID controller.
+     *
+     * This method is responsible for managing the overall flow of the HID
+     * controller's operations. It sequentially:
+     * - Updates the state of input devices.
+     * - Updates USB reports based on the state of the input devices.
+     * - Updates actions based on processed input and current state.
+     * - Executes the actions using the action manager.
+     */
+    void main_task()
+    {
+        update_state();
+        update_usb_reports();
+        update_actions();
+        execute_actions();
     }
 
     /**
@@ -165,8 +186,8 @@ public:
             // Config number, interface count, string index, total length, attribute, power in mA
             TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, TUSB_DESC_CONFIG_ATT_REMOTE_WAKEUP, 100),
 
-            // Interface number, string index, protocol, report descriptor len, EP In address, size & polling
-            // interval
+            // Interface number, string index, protocol, report descriptor len,
+            // EP In address, size & polling interval
             TUD_HID_DESCRIPTOR(ITF_NUM_HID, 0, HID_ITF_PROTOCOL_NONE, usb_reports_description.size(),
                                EPNUM_HID, CFG_TUD_HID_EP_BUFSIZE, 5)};
     }
@@ -199,6 +220,20 @@ public:
         {
             input_device->update_usb_reports(get_usb_report());
         }
+    }
+
+    void update_actions()
+    {
+        action_manager->reset();
+        for (const auto& input_devices : input_devices)
+        {
+            input_devices->update_actions(action_manager);
+        }
+    }
+
+    void execute_actions()
+    {
+        action_manager->execute();
     }
 
     /**

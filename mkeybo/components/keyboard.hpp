@@ -12,8 +12,6 @@
 #include "switch_events.hpp"
 #include "switch_reader.hpp"
 #include "usb_reports.hpp"
-#include "actions.hpp"
-#include <iostream>
 
 
 namespace mkeybo {
@@ -23,7 +21,7 @@ template <size_t switches_count, size_t keycodes_buffer_size = 20>
 class Keyboard : public InputDevice
 {
 protected:
-    uint8_t start_report_id {0};
+    uint8_t start_report_id{0};
     std::vector<bool> active_layers_{};
     std::vector<bool> active_layers_prev_cycle_{};
     uint8_t active_layout_{};
@@ -37,18 +35,16 @@ protected:
     SwitchReader<switches_count>* switch_reader_;
     SwitchEventsGenerator<switches_count>* switch_events_generator_;
     std::vector<mapping_rule::BaseMappingRule<switches_count, keycodes_buffer_size>*> keycodes_mapping_rules_;
-    ActionManager<switches_count, keycodes_buffer_size>* action_manager_;
     KeyboardSettings<switches_count>* settings_{};
 
 public:
     Keyboard(SwitchReader<switches_count>* switch_reader,
              SwitchEventsGenerator<switches_count>* switch_events_generator,
              const std::vector<mapping_rule::BaseMappingRule<switches_count, keycodes_buffer_size>*>&
-             keycode_mapping_rules,
-             ActionManager<switches_count, keycodes_buffer_size>* action_manager) :
+             keycode_mapping_rules
+        ) :
         switch_reader_(switch_reader), switch_events_generator_(switch_events_generator),
-        keycodes_mapping_rules_(keycode_mapping_rules),
-        action_manager_(action_manager)
+        keycodes_mapping_rules_(keycode_mapping_rules)
     {
     };
 
@@ -208,7 +204,6 @@ public:
         on_update_switch_events();
         generate_keycodes();
         on_generate_keycodes();
-        make_actions(); // TODO: Move actions to HidController
     }
 
     void reset_state_cycle()
@@ -258,11 +253,6 @@ public:
         }
     }
 
-    void make_actions()
-    {
-        this->action_manager_->make_actions(this);
-    }
-
     /**
      *Events callbacks
      */
@@ -293,7 +283,7 @@ public:
     }
 
     void on_usb_report_receive(const uint8_t instance, const uint8_t report_id, const hid_report_type_t report_type,
-        const uint8_t* buffer, const uint16_t bufsize) override
+                               const uint8_t* buffer, const uint16_t bufsize) override
     {
         if (report_id == start_report_id)
         {
@@ -401,7 +391,7 @@ public:
 
     template <class KeycodeEventView>
     uint8_t generate_usb_keyboard_report_regular(KeycodeEventView&& regular_keycodes, UsbKeyboardReport* report,
-                                                    const uint8_t start_keycode_index = 0)
+                                                 const uint8_t start_keycode_index = 0)
     {
         uint8_t keycode_index = start_keycode_index;
         for (auto& keycode_event : regular_keycodes)
@@ -440,7 +430,7 @@ public:
 
     auto get_cc_keycodes(KeycodeEventPriority priority)
     {
-        return this->get_filtered_keycode_events(KeycodeType::cc, KeycodeEventType::finalized, priority);
+        return get_filtered_keycode_events(KeycodeType::cc, KeycodeEventType::finalized, priority);
     }
 
     template <class KeycodeEvnetView>
@@ -452,6 +442,24 @@ public:
             report->keycode = (*keycode_event_it).keycode.code;
         }
     }
+
+    /**
+     * Update actions
+     */
+    void update_actions(actions::ActionManager* action_manager) override
+    {
+        for (const auto& keycode_event : get_filtered_keycode_events(
+                 KeycodeType::action, KeycodeEventType::finalized, KeycodeEventPriority::high))
+        {
+            action_manager->push(keycode_event.keycode.code);
+        }
+        for (const auto& keycode_event : get_filtered_keycode_events(
+                 KeycodeType::action, KeycodeEventType::finalized, KeycodeEventPriority::normal))
+        {
+            action_manager->push(keycode_event.keycode.code);
+        }
+    }
+
 };
 
 } // namespace mkeybo

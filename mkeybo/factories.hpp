@@ -8,9 +8,7 @@
 #include "components/switch_events.hpp"
 #include "components/switch_readers/matrix_switch_reader.hpp"
 #include "components/actions.hpp"
-#include "components/actions/reboot_actions.hpp"
 #include "components/base.hpp"
-#include "consts.hpp"
 
 
 /**
@@ -73,14 +71,11 @@ std::vector<mapping_rule::BaseMappingRule<switches_count, keycodes_buffer_size>*
     };
 }
 
-template <size_t switches_count, size_t keycodes_buffer_size>
-ActionManager<switches_count, keycodes_buffer_size>* create_action_manager()
+inline actions::ActionManager* create_action_manager()
 {
-    return new ActionManager<switches_count, keycodes_buffer_size>({
-        {Keycode{KeycodeType::action, key_action_reboot_to_bootloader},
-         new actions::RebootToBootloaderAction<switches_count, keycodes_buffer_size>{}},
-        {Keycode{KeycodeType::action, key_action_reboot},
-         new actions::RebootAction<switches_count, keycodes_buffer_size>{}}
+    return new actions::ActionManager({
+        {actions::action_reboot_id, new actions::ActionExecutorReboot()},
+        {actions::action_reboot_to_bootloader_id, new actions::ActionExecutorRebootToBootloader()},
     });
 }
 

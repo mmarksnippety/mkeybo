@@ -1,51 +1,82 @@
 #pragma once
 
 #include <map>
-#include "base.hpp"
-#include "actions/base_action.hpp"
+#include <pico/bootrom.h>
+#include <hardware/watchdog.h>
 
 
-/**
- * Actions are triggered for KeycodeType::action
- * This mechanizm is usefully to make ex rebot, rebot to bootloader, make a macro,
- * make some think with keyboard parameters
- */
-
-namespace mkeybo {
+namespace mkeybo::actions {
 
 
-template <size_t switches_count, size_t keycodes_buffer_size>
+constexpr uint16_t action_reboot_to_bootloader_id = 0x0001;
+constexpr uint16_t action_reboot_id = 0x0002;
+
+
+class ActionExecutor
+{
+public:
+    virtual ~ActionExecutor() = default;
+    virtual void execute() = 0;
+};
+
+
+class ActionExecutorRebootToBootloader final : public ActionExecutor
+{
+public:
+    void execute() override { reset_usb_boot(0, 0); }
+};
+
+
+class ActionExecutorReboot final : public ActionExecutor
+{
+public:
+    void execute() override { watchdog_reboot(0, 0, 0); }
+};
+
+
 class ActionManager
 {
-    std::map<Keycode, actions::BaseAction<switches_count, keycodes_buffer_size>*> actions{};
+    std::map<uint16_t, ActionExecutor*> executors;
+    std::array<uint16_t, 10> buffer{};
+    uint8_t index = 0;
 
 public:
-    explicit ActionManager(const std::map<Keycode, actions::BaseAction<switches_count, keycodes_buffer_size>*>& actions) :
-        actions(actions)
+    explicit ActionManager(const std::map<uint16_t, ActionExecutor*>& executors) :
+        executors(executors)
     {
+        buffer.fill(0);
     }
 
-    ~ActionManager()
+    void reset()
     {
-        for (const auto& action : actions | std::views::values)
+        index = 0;
+        buffer.fill(0);
+    }
+
+    bool push(const uint16_t action_id)
+    {
+        if (index >= buffer.size())
         {
-            delete action;
+            return false;
         }
+        buffer[index] = action_id;
+        index++;
+        return true;
     }
 
-    void make_actions(Keyboard<switches_count, keycodes_buffer_size>* keyboard)
+    void execute()
     {
-        for (auto& keycode_event : keyboard->get_filtered_keycode_events(
-                 KeycodeType::action, KeycodeEventType::finalized))
+        for (const auto& action_id : buffer)
         {
-            auto action_it = actions.find(keycode_event.keycode);
-            if (action_it != actions.end())
+            if (action_id != 0)
             {
-                action_it->second->execute(keyboard, keycode_event.keycode);
+                if (auto executor_it = executors.find(action_id); executor_it != executors.end())
+                {
+                    executor_it->second->execute();
+                }
             }
         }
     }
 };
-
 
 }

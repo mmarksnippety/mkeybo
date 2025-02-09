@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "usb_reports.hpp"
+#include "actions.hpp"
 
 
 namespace mkeybo {
@@ -14,6 +15,11 @@ public:
     virtual void update_state() = 0;
     virtual uint8_t setup_usb_reports(std::vector<UsbReport*>& reports, uint8_t start_index) = 0;
     virtual void update_usb_reports(std::vector<UsbReport*>& reports) = 0;
+
+    virtual void update_actions(actions::ActionManager* action_manager)
+    {
+
+    }
 
     virtual void on_usb_mount()
     {
