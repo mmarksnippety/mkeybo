@@ -3,6 +3,7 @@
 #include "settings.hpp"
 #include "keyboard.hpp"
 #include "utils.hpp"
+#include "pwm_led.hpp"
 #include "mkeybo/components/base.hpp"
 #include "mkeybo/components/hid_controller.hpp"
 #include "mkeybo/factories.hpp"
@@ -55,5 +56,6 @@ void hid_controller_usb_task()
         tud_task();
         hid_controller_main_task();
         hid_controller_usb_task();
+        reinterpret_cast<Keyboard<keyboard_config.switches_count>*>(keyboard)->leds_task();
     }
 }
