@@ -17,11 +17,11 @@ auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
         .name{"qwerty"},
         .keycodes{
             // 0 ~ 11
-            H_K(HID_KEY_TAB), H_K(HID_KEY_Q), H_K(HID_KEY_W), H_K(HID_KEY_E),
+            H_K(HID_KEY_ESCAPE), H_K(HID_KEY_Q), H_K(HID_KEY_W), H_K(HID_KEY_E),
             H_K(HID_KEY_R), H_K(HID_KEY_T), H_K(HID_KEY_Y), H_K(HID_KEY_U),
             H_K(HID_KEY_I), H_K(HID_KEY_O), H_K(HID_KEY_P), H_K(HID_KEY_BACKSPACE),
             // 12 ~ 23
-            H_K(HID_KEY_ESCAPE), H_K(HID_KEY_A), H_K(HID_KEY_S), H_K(HID_KEY_D),
+            H_K(HID_KEY_TAB), H_K(HID_KEY_A), H_K(HID_KEY_S), H_K(HID_KEY_D),
             H_K(HID_KEY_F), H_K(HID_KEY_G), H_K(HID_KEY_H), H_K(HID_KEY_J),
             H_K(HID_KEY_K), H_K(HID_KEY_L), H_K(HID_KEY_SEMICOLON), H_K(HID_KEY_APOSTROPHE),
             // 24 ~ 35
@@ -128,7 +128,7 @@ auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
         {layout},
         {layer_down, layer_up, layer_navi, layer_spec},
         {
-//            {mkeybo::keyboard_rule_settings::rule_name_multi_mapping, multi_layer_config},
+            {mkeybo::keyboard_rule_settings::rule_name_multi_mapping, multi_map_config},
         },
         50, // switches_refresh_interval_ms
         50, // press_min_interval_ms
