@@ -211,7 +211,6 @@ public:
         active_layers_prev_cycle_ = active_layers_;
         active_layout_prev_cycle_ = active_layout_;
         copy_keycode_events_to_prev_cycle();
-
     }
 
     void copy_keycode_events_to_prev_cycle()
