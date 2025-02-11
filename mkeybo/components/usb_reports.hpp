@@ -3,7 +3,6 @@
 #include <array>
 #include <sstream>
 #include <iostream>
-#include "base.hpp"
 #include "tusb.h"
 
 
@@ -27,17 +26,16 @@ class UsbReport
 {
 protected:
     virtual void send_report_() = 0;
-
-public:
-    uint8_t report_id;
+    uint8_t report_id{};
     UsbReportStatus status = UsbReportStatus::draft;
 
-    explicit UsbReport(const uint8_t index) :
-        report_id(index)
-    {
-    }
+public:
+
+    explicit UsbReport() = default;
 
     virtual ~UsbReport() = default;
+
+    void set_report_id(uint8_t report_id) { this->report_id = report_id; }
 
     [[nodiscard]] bool is_report_ready() const { return status == UsbReportStatus::ready; }
 
@@ -51,6 +49,7 @@ public:
 
     [[nodiscard]] virtual std::string to_string() const = 0;
 };
+
 
 /**
  * Standard keyboard report
@@ -69,11 +68,6 @@ public:
     using UsbReport::status;
     uint8_t modifiers = 0;
     std::array<uint8_t, 6> keycodes{};
-
-    explicit UsbKeyboardReport(const uint8_t index) :
-        UsbReport(index)
-    {
-    }
 
     std::vector<uint8_t> get_report_description() override
     {
@@ -114,11 +108,6 @@ class UsbCcReport final : public UsbReport
 public:
     using UsbReport::status;
     uint16_t keycode{};
-
-    explicit UsbCcReport(const uint8_t index) :
-        UsbReport(index)
-    {
-    }
 
     std::vector<uint8_t> get_report_description() override
     {

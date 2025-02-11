@@ -5,6 +5,7 @@
 #include <limits>
 #include <ranges>
 #include "base.hpp"
+#include "hid_controller.hpp"
 #include "input_device.hpp"
 #include "keyboard_settings.hpp"
 #include "keycode_event_buffer.hpp"
@@ -296,21 +297,22 @@ public:
      * Usb reports descriptions
      */
 
-    uint8_t setup_usb_reports(std::vector<UsbReport*>& reports, uint8_t start_report_id) override
+    void setup_usb_reports(HidController* hid_controller) override
     {
         this->start_report_id = start_report_id;
-        reports.push_back(new UsbKeyboardReport(start_report_id));
-        reports.push_back(new UsbCcReport(start_report_id + 1));
-        return start_report_id + 2;
+        start_report_id = hid_controller->add_usb_report(new UsbKeyboardReport());
+        hid_controller->add_usb_report(new UsbCcReport());
     }
 
     /**
      * Generate usb reports
      */
-    void update_usb_reports(std::vector<UsbReport*>& reports) override
+    void update_usb_reports(HidController* hid_controller) override
     {
-        conditionally_generate_usb_keyboard_report(reinterpret_cast<UsbKeyboardReport*>(reports[start_report_id - 1]));
-        conditionally_generate_usb_cc_report(reinterpret_cast<UsbCcReport*>(reports[start_report_id]));
+        conditionally_generate_usb_keyboard_report(
+            reinterpret_cast<UsbKeyboardReport*>(hid_controller->get_usb_report(start_report_id)));
+        conditionally_generate_usb_cc_report(
+            reinterpret_cast<UsbCcReport*>(hid_controller->get_usb_report(start_report_id + 1)));
     }
 
     void conditionally_generate_usb_keyboard_report(UsbKeyboardReport* report)
@@ -445,17 +447,17 @@ public:
     /**
      * Update actions
      */
-    void update_actions(actions::ActionManager* action_manager) override
+    void update_actions(HidController* hid_controller) override
     {
         for (const auto& keycode_event : get_filtered_keycode_events(
                  KeycodeType::action, KeycodeEventType::finalized, KeycodeEventPriority::high))
         {
-            action_manager->push(keycode_event.keycode.code);
+            hid_controller->push_action(keycode_event.keycode.code);
         }
         for (const auto& keycode_event : get_filtered_keycode_events(
                  KeycodeType::action, KeycodeEventType::finalized, KeycodeEventPriority::normal))
         {
-            action_manager->push(keycode_event.keycode.code);
+            hid_controller->push_action(keycode_event.keycode.code);
         }
     }
 

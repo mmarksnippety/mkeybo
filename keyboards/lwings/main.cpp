@@ -2,17 +2,16 @@
 #include "pico/multicore.h"
 #include "pico/util/queue.h"
 #include "bsp/board_api.h"
+#include "mkeybo/components/base.hpp"
+#include "mkeybo/components/hid_controller.hpp"
+#include "mkeybo/factories.hpp"
+#include "mkeybo/utils.hpp"
 #include "config.hpp"
 #include "factories.hpp"
 #include "keyboard.hpp"
 #include "debug.hpp"
 #include "status_display.hpp"
 #include "logo.hpp"
-#include "mkeybo/components/base.hpp"
-#include "mkeybo/components/hid_controller.hpp"
-#include "mkeybo/factories.hpp"
-#include "mkeybo/utils.hpp"
-#include <iomanip>
 
 
 mkeybo::HidController* hid_controller;
@@ -32,7 +31,6 @@ struct QueueEvnet
     QueueEventType type{QueueEventType::idle};
     uint8_t data[64]{}; //
 };
-
 
 
 void hid_controller_main_task()
@@ -99,8 +97,11 @@ void hid_controller_usb_task()
     hid_controller = new mkeybo::HidController(
         keyboard_config.keyboard_name,
         keyboard_config.manufactured_name,
-        {keyboard},
-        mkeybo::create_action_manager()
+        {
+            {mkeybo::actions::action_reboot_id, new mkeybo::actions::ActionExecutorReboot()},
+            {mkeybo::actions::action_reboot_to_bootloader_id, new mkeybo::actions::ActionExecutorRebootToBootloader()},
+        },
+        {keyboard}
         );
     status_display = new StatusDisplay(display_config);
     tud_init(0);

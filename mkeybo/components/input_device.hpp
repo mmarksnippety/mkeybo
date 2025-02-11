@@ -1,24 +1,20 @@
 #pragma once
 
-#include <vector>
-
-#include "usb_reports.hpp"
-#include "actions.hpp"
-
-
 namespace mkeybo {
+
+
+class HidController;
+
 
 class InputDevice
 {
 public:
     virtual ~InputDevice() = default;
     virtual void update_state() = 0;
-    virtual uint8_t setup_usb_reports(std::vector<UsbReport*>& reports, uint8_t start_index) = 0;
-    virtual void update_usb_reports(std::vector<UsbReport*>& reports) = 0;
-
-    virtual void update_actions(actions::ActionManager* action_manager)
+    virtual void setup_usb_reports(HidController* hid_controller) = 0;
+    virtual void update_usb_reports(HidController* hid_controller) = 0;
+    virtual void update_actions(HidController* hid_controller)
     {
-
     }
 
     virtual void on_usb_mount()

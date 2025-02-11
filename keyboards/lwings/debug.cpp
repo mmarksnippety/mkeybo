@@ -80,9 +80,9 @@ void print_keyboard_info()
         sw_event_info(switch_events[key_event.switch_no], key_event.switch_no);
         std::cout << std::endl;
     }
-    for (const auto report : hid_controller->get_usb_report())
+    for (const auto report : hid_controller->get_usb_reports())
     {
-        if (mkeybo::UsbReportStatus::ready == report->status)
+        if (report->is_report_ready())
         {
             std::cout << report->to_string() << std::endl;
         }

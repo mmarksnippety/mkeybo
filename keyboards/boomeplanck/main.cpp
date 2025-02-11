@@ -1,11 +1,11 @@
 #include "pico/stdlib.h"
-#include "config.hpp"
-#include "settings.hpp"
-#include "keyboard.hpp"
-#include "../../mkeybo/utils.hpp"
+#include "mkeybo/utils.hpp"
 #include "mkeybo/components/base.hpp"
 #include "mkeybo/components/hid_controller.hpp"
 #include "mkeybo/factories.hpp"
+#include "config.hpp"
+#include "settings.hpp"
+#include "keyboard.hpp"
 
 
 mkeybo::HidController* hid_controller;
@@ -48,8 +48,11 @@ void hid_controller_usb_task()
     hid_controller = new mkeybo::HidController(
         keyboard_config.keyboard_name,
         keyboard_config.manufactured_name,
-        {keyboard},
-        mkeybo::create_action_manager()
+        {
+            {mkeybo::actions::action_reboot_id, new mkeybo::actions::ActionExecutorReboot()},
+            {mkeybo::actions::action_reboot_to_bootloader_id, new mkeybo::actions::ActionExecutorRebootToBootloader()},
+        },
+        {keyboard}
         );
     while (true)
     {
