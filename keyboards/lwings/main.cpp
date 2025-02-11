@@ -11,8 +11,9 @@
 #include "mkeybo/components/base.hpp"
 #include "mkeybo/components/hid_controller.hpp"
 #include "mkeybo/factories.hpp"
+#include "mkeybo/utils.hpp"
 #include <iomanip>
-#include <iostream>
+
 
 mkeybo::HidController* hid_controller;
 mkeybo::Keyboard<keyboard_config.switches_count>* keyboard;
@@ -32,14 +33,13 @@ struct QueueEvnet
     uint8_t data[64]{}; //
 };
 
-auto get_ms_since_boot() { return to_ms_since_boot(get_absolute_time()); }
 
 
 void hid_controller_main_task()
 {
-    static auto last_main_task_ts = get_ms_since_boot();
+    static auto last_main_task_ts = mkeybo::get_ms_since_boot();
     static auto current_ts = last_main_task_ts;
-    current_ts = get_ms_since_boot();
+    current_ts = mkeybo::get_ms_since_boot();
     if (keyboard == nullptr)
     {
         return;
@@ -61,9 +61,9 @@ void hid_controller_main_task()
 
 void hid_controller_usb_task()
 {
-    static auto last_main_task_ts = get_ms_since_boot();
+    static auto last_main_task_ts = mkeybo::get_ms_since_boot();
     static auto current_ts = last_main_task_ts;
-    current_ts = get_ms_since_boot();
+    current_ts = mkeybo::get_ms_since_boot();
     if (keyboard == nullptr)
     {
         return;

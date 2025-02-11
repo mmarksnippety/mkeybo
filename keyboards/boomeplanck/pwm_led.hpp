@@ -3,15 +3,20 @@
 #include "hardware/pwm.h"
 #include "hardware/timer.h"
 #include "pico/stdlib.h"
-#include "utils.hpp"
+#include "mkeybo/utils.hpp"
+
+
+struct PWMLedConfig
+{
+    uint8_t pwm_pin;
+};
 
 
 class PWMLed {
-private:
     uint8_t pwm_pin;
     uint16_t pwm_slice = 0;
     uint16_t pwm_channel = 0;
-    uint8_t pwm_duty = 50;
+    uint8_t pwm_duty = 0;
     uint16_t pwm_frequency = 1000;
     uint32_t pwm_divider16 = 0;
     uint32_t pwm_wrap = 0;
@@ -23,13 +28,9 @@ private:
     bool blink_state = false;
 
 public:
-    explicit PWMLed(const uint8_t pwm_pin, const uint8_t pwm_duty, const uint16_t pwm_frequency = 1000)
-        : pwm_pin(pwm_pin), pwm_duty(pwm_duty), pwm_frequency(pwm_frequency)
+    explicit PWMLed(const uint8_t pwm_pin)
+        : pwm_pin(pwm_pin)
     {
-        init();
-    }
-
-    void init() {
         gpio_init(pwm_pin);
         gpio_set_function(pwm_pin, GPIO_FUNC_PWM);
         pwm_slice = pwm_gpio_to_slice_num(pwm_pin);
@@ -58,7 +59,7 @@ public:
 
     void blink(const uint32_t interval_ms, const uint8_t duty = 100, const uint8_t blink_max = 1) {
         blink_interval_ms = interval_ms;
-        blink_start_ms = get_ms_since_boot();
+        blink_start_ms = mkeybo::get_ms_since_boot();
         blink_current = blink_max * 2;
         blink_state = true;
         blink_duty = duty;
@@ -70,7 +71,7 @@ public:
             // not blinking
             return;
         }
-        const auto current_ms_since_boot = get_ms_since_boot();
+        const auto current_ms_since_boot = mkeybo::get_ms_since_boot();
         if (current_ms_since_boot - blink_start_ms < blink_interval_ms) {
             // not enough time
             return;

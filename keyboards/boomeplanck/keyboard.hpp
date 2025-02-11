@@ -10,16 +10,16 @@
 template <size_t switches_count, size_t keycodes_buffer_size = 20>
 class Keyboard final : public mkeybo::Keyboard<switches_count, keycodes_buffer_size>
 {
-PWMLed *right_led;
 PWMLed *left_led;
+PWMLed *right_led;
 
 public:
-    explicit Keyboard() :
+    explicit Keyboard(const uint8_t left_led_pin, const uint8_t right_led_pin) :
         mkeybo::Keyboard<switches_count>(
             mkeybo::create_switch_reader_matrix<switches_count>(switch_reader_config),
             mkeybo::create_switch_events_generator<switches_count>(),
             mkeybo::create_keycode_mapping_rules<switches_count, keycodes_buffer_size>()
-        ), right_led(new PWMLed(5, 0)), left_led(new PWMLed(4, 0))
+        ), left_led(new PWMLed(left_led_pin)), right_led(new PWMLed(right_led_pin))
     {
     }
 
