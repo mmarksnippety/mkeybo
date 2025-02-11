@@ -1,7 +1,5 @@
 #pragma once
 
-#include "../keyboard_settings.hpp"
-#include "../keyboard.hpp"
 #include "../base.hpp"
 #include "base_mapping_rule.hpp"
 

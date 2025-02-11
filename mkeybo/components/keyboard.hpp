@@ -23,20 +23,20 @@ class Keyboard : public InputDevice
 {
 protected:
     uint8_t start_report_id{0};
-    std::vector<bool> active_layers_{};
-    std::vector<bool> active_layers_prev_cycle_{};
-    uint8_t active_layout_{};
-    size_t layout_size_{};
-    uint8_t active_layout_prev_cycle_{};
-    std::bitset<switches_count> switch_state_{};
-    std::array<SwitchEvent, switches_count> switch_events_{};
-    KeycodeEventBuffer<keycodes_buffer_size> keycode_events_prev_cycle_{};
-    KeycodeEventBuffer<keycodes_buffer_size> keycode_events_{};
-    LedStatus led_status_{};
-    SwitchReader<switches_count>* switch_reader_;
-    SwitchEventsGenerator<switches_count>* switch_events_generator_;
-    std::vector<mapping_rule::BaseMappingRule<switches_count, keycodes_buffer_size>*> keycodes_mapping_rules_;
-    KeyboardSettings<switches_count>* settings_{};
+    std::vector<bool> active_layers{};
+    std::vector<bool> active_layers_prev_cycle{};
+    uint8_t active_layout{};
+    size_t layout_size{};
+    uint8_t active_layout_prev_cycle{};
+    std::bitset<switches_count> switch_state{};
+    std::array<SwitchEvent, switches_count> switch_events{};
+    KeycodeEventBuffer<keycodes_buffer_size> keycode_events_prev_cycle{};
+    KeycodeEventBuffer<keycodes_buffer_size> keycode_events{};
+    LedStatus led_status{};
+    SwitchReader<switches_count>* switch_reader;
+    SwitchEventsGenerator<switches_count>* switch_events_generator;
+    std::vector<mapping_rule::BaseMappingRule<switches_count, keycodes_buffer_size>*> keycodes_mapping_rules;
+    KeyboardSettings<switches_count>* settings{};
 
 public:
     Keyboard(SwitchReader<switches_count>* switch_reader,
@@ -44,34 +44,34 @@ public:
              const std::vector<mapping_rule::BaseMappingRule<switches_count, keycodes_buffer_size>*>&
              keycode_mapping_rules
         ) :
-        switch_reader_(switch_reader), switch_events_generator_(switch_events_generator),
-        keycodes_mapping_rules_(keycode_mapping_rules)
+        switch_reader(switch_reader), switch_events_generator(switch_events_generator),
+        keycodes_mapping_rules(keycode_mapping_rules)
     {
-    };
+    }
 
     ~Keyboard() override
     {
-        delete switch_reader_;
-        delete switch_events_generator_;
-        for (auto& keycodes_mapping_rule : keycodes_mapping_rules_)
+        delete switch_reader;
+        delete switch_events_generator;
+        for (auto& keycodes_mapping_rule : keycodes_mapping_rules)
         {
             delete keycodes_mapping_rule;
         }
-        delete settings_;
-    };
+        delete settings;
+    }
 
     /**
      * Settings
      */
 
-    KeyboardSettings<switches_count>* get_settings() { return settings_; }
+    KeyboardSettings<switches_count>* get_settings() { return settings; }
 
     void set_settings(KeyboardSettings<switches_count>* settings)
     {
-        settings_ = settings;
-        layout_size_ = settings->layouts.size();
-        active_layers_.resize(settings->layers.size());
-        active_layers_prev_cycle_.resize(settings->layers.size());
+        this->settings = settings;
+        layout_size = this->settings->layouts.size();
+        active_layers.resize(this->settings->layers.size());
+        active_layers_prev_cycle.resize(this->settings->layers.size());
         reset();
         on_update_settings();
     }
@@ -80,94 +80,94 @@ public:
      * Layers
      */
 
-    void reset_active_layers() { std::fill(active_layers_.begin(), active_layers_.end(), false); }
+    void reset_active_layers() { std::fill(active_layers.begin(), active_layers.end(), false); }
 
     void set_active_layer(const uint8_t layer_index, const bool active = true)
     {
-        if (layer_index >= active_layers_.size())
+        if (layer_index >= active_layers.size())
         {
             return;
         }
-        active_layers_[layer_index] = active;
+        active_layers[layer_index] = active;
     }
 
-    auto& get_active_layers() { return active_layers_; }
+    auto& get_active_layers() { return active_layers; }
 
-    bool is_layer_active(const uint8_t layer_index) { return active_layers_[layer_index] == true; }
+    bool is_layer_active(const uint8_t layer_index) { return active_layers[layer_index] == true; }
 
-    [[nodiscard]] bool is_layer_changed() const { return active_layers_prev_cycle_ != active_layers_; }
+    [[nodiscard]] bool is_layer_changed() const { return active_layers_prev_cycle != active_layers; }
 
     /**
      * Layout
      */
 
-    void reset_active_layout() { active_layout_ = 0; }
+    void reset_active_layout() { active_layout = 0; }
 
     void set_active_layout(const uint8_t layout_index)
     {
-        if (layout_index >= layout_size_)
+        if (layout_index >= layout_size)
         {
             return;
         }
-        active_layout_ = layout_index;
+        active_layout = layout_index;
     }
 
-    auto get_active_layout() { return active_layout_; }
+    auto get_active_layout() { return active_layout; }
 
-    [[nodiscard]] bool is_layout_changed() const { return active_layout_prev_cycle_ != active_layout_; }
+    [[nodiscard]] bool is_layout_changed() const { return active_layout_prev_cycle != active_layout; }
 
     /**
      * Switch state
      */
 
-    void reset_switch_state() { switch_state_.reset(); }
+    void reset_switch_state() { switch_state.reset(); }
 
-    auto& get_switch_state() { return switch_state_; }
+    auto& get_switch_state() { return switch_state; }
 
 
     /**
      * Switch events
      */
 
-    void reset_switch_events() { std::fill(switch_events_.begin(), switch_events_.end(), SwitchEvent{}); }
+    void reset_switch_events() { std::fill(switch_events.begin(), switch_events.end(), SwitchEvent{}); }
 
-    auto& get_switch_events() { return switch_events_; }
+    auto& get_switch_events() { return switch_events; }
 
     /**
      * Keycodes events
      */
-    void reset_keycode_events() { keycode_events_.reset(); }
+    void reset_keycode_events() { keycode_events.reset(); }
 
-    void push_keycode_event(const KeycodeEvent& keycode_event) { keycode_events_.push(keycode_event); }
+    void push_keycode_event(const KeycodeEvent& keycode_event) { keycode_events.push(keycode_event); }
 
     void push_keycode_event(const Keycode& keycode, const uint8_t switch_no = std::numeric_limits<uint8_t>::max(),
                             const KeycodeEventType type = KeycodeEventType::draft,
                             KeycodeEventPriority priority = KeycodeEventPriority::normal)
     {
-        keycode_events_.push(keycode, switch_no, type, priority);
+        keycode_events.push(keycode, switch_no, type, priority);
     }
 
     auto get_filtered_keycode_events(const std::optional<KeycodeType> keycode_type = std::nullopt,
                                      const std::optional<KeycodeEventType> keycode_event_type = std::nullopt,
                                      const std::optional<KeycodeEventPriority> keycode_event_priority = std::nullopt)
     {
-        return keycode_events_.get_filtered_events(keycode_type, keycode_event_type, keycode_event_priority);
+        return keycode_events.get_filtered_events(keycode_type, keycode_event_type, keycode_event_priority);
     }
 
     bool have_keycode_events_changed(const KeycodeType& keycode_type)
     {
         return !std::ranges::equal(
-            keycode_events_.get_filtered_events(keycode_type, KeycodeEventType::finalized),
-            keycode_events_prev_cycle_.get_filtered_events(keycode_type, KeycodeEventType::finalized));
+            keycode_events.get_filtered_events(keycode_type, KeycodeEventType::finalized),
+            keycode_events_prev_cycle.get_filtered_events(keycode_type, KeycodeEventType::finalized));
     }
 
     /**
      * Led status
      */
 
-    auto& get_led_status() { return led_status_; }
+    auto& get_led_status() { return led_status; }
 
-    void set_led_status(const LedStatus& led_status) { led_status_ = led_status; }
+    void set_led_status(const LedStatus& led_status) { this->led_status = led_status; }
 
     /**
      * Life cycle methods
@@ -181,8 +181,8 @@ public:
         reset_switch_events();
         reset_keycode_events();
         // reset prev cycle states
-        std::fill(active_layers_prev_cycle_.begin(), active_layers_prev_cycle_.end(), false);
-        keycode_events_prev_cycle_.reset();
+        std::fill(active_layers_prev_cycle.begin(), active_layers_prev_cycle.end(), false);
+        keycode_events_prev_cycle.reset();
     }
 
     /**
@@ -209,29 +209,29 @@ public:
 
     void reset_state_cycle()
     {
-        active_layers_prev_cycle_ = active_layers_;
-        active_layout_prev_cycle_ = active_layout_;
+        active_layers_prev_cycle = active_layers;
+        active_layout_prev_cycle = active_layout;
         copy_keycode_events_to_prev_cycle();
     }
 
     void copy_keycode_events_to_prev_cycle()
     {
-        keycode_events_prev_cycle_.reset();
-        std::ranges::for_each(keycode_events_.get_filtered_events(std::nullopt, KeycodeEventType::finalized),
+        keycode_events_prev_cycle.reset();
+        std::ranges::for_each(keycode_events.get_filtered_events(std::nullopt, KeycodeEventType::finalized),
                               [this](KeycodeEvent& keycode_event)
                               {
-                                  keycode_events_prev_cycle_.push(keycode_event);
+                                  keycode_events_prev_cycle.push(keycode_event);
                               });
     }
 
     void update_switch_state()
     {
-        this->switch_reader_->update(switch_state_);
+        this->switch_reader->update(switch_state);
     }
 
     void update_switch_events()
     {
-        this->switch_events_generator_->update(settings_, switch_state_, switch_events_);
+        this->switch_events_generator->update(settings, switch_state, switch_events);
     }
 
     void generate_keycodes()
@@ -242,7 +242,7 @@ public:
         {
             reset_keycode_events();
             mapped = true;
-            for (auto rule : keycodes_mapping_rules_)
+            for (auto rule : keycodes_mapping_rules)
             {
                 if (rule->map(this))
                 {
