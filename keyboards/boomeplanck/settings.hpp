@@ -80,11 +80,11 @@ auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
         .name{"navi"},
         .keycodes{
             // 0 ~ 11
-            N_K(), N_K(), N_K(), N_K(),
+            ACTION_K(mkeybo::actions::action_reboot_to_bootloader_id), N_K(), N_K(), N_K(),
             N_K(), N_K(), N_K(), N_K(),
             N_K(), N_K(), N_K(), ACTION_K(mkeybo::actions::action_reboot_id),
             // 12 - 23
-            ACTION_K(mkeybo::actions::action_reboot_to_bootloader_id), N_K(), N_K(), N_K(),
+            N_K(), N_K(), N_K(), N_K(),
             N_K(), N_K(), N_K(), CC_K(HID_USAGE_CONSUMER_BRIGHTNESS_DECREMENT),
             CC_K(HID_USAGE_CONSUMER_BRIGHTNESS_INCREMENT), N_K(), N_K(), N_K(),
             // 24 ~ 35
