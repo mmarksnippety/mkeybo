@@ -61,14 +61,14 @@ auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
             // 0 ~ 11
             H_K(HID_KEY_GRAVE), H_K(HID_KEY_1), H_K(HID_KEY_2), H_K(HID_KEY_3),
             H_K(HID_KEY_4), H_K(HID_KEY_5), H_K(HID_KEY_6), H_K(HID_KEY_7),
-            H_K(HID_KEY_8), H_K(HID_KEY_9), N_K(),
+            H_K(HID_KEY_8), H_K(HID_KEY_9), H_K(HID_KEY_0), N_K(),
             // 12 - 23
             H_K(HID_KEY_DELETE), H_K(HID_KEY_F1), H_K(HID_KEY_F2), H_K(HID_KEY_F3),
-            H_K(HID_KEY_F4), H_K(HID_KEY_F5), H_K(HID_KEY_F6), H_K(M_LSHIFT(HID_KEY_MINUS)),
-            H_K(M_LSHIFT(HID_KEY_EQUAL)), H_K(M_LSHIFT(HID_KEY_BRACKET_LEFT)), H_K(M_LSHIFT(HID_KEY_BRACKET_RIGHT)), H_K(M_LSHIFT(HID_KEY_BACKSLASH)),
+            H_K(HID_KEY_F4), H_K(HID_KEY_F5), H_K(HID_KEY_F6), H_K(HID_KEY_MINUS),
+            H_K(HID_KEY_EQUAL), H_K(HID_KEY_BRACKET_LEFT), H_K(HID_KEY_BRACKET_RIGHT), H_K(HID_KEY_BACKSLASH),
             // 24 ~ 35
             N_K(), H_K(HID_KEY_F7), H_K(HID_KEY_F8), H_K(HID_KEY_F9),
-            H_K(HID_KEY_F10), H_K(HID_KEY_F11), H_K(HID_KEY_F12), H_K(M_LSHIFT(HID_KEY_BACKSLASH)),
+            H_K(HID_KEY_F10), H_K(HID_KEY_F11), H_K(HID_KEY_F12), H_K(HID_KEY_BACKSLASH),
             H_K(HID_KEY_SLASH), N_K(), N_K(), N_K(),
             // 36 ~ 47
             N_K(), N_K(), N_K(), N_K(),
