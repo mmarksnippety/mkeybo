@@ -2,8 +2,8 @@
 
 #include <iostream>
 #include "mkeybo/components/base.hpp"
-#include "mkeybo/components/keyboard_rule_settings/tap_dance_rule_settings.hpp"
-#include "mkeybo/components/keyboard_rule_settings/multi_mapping_rule_settings.hpp"
+#include "mkeybo/components/keyboard/mapping_rules/tap_dance_mapping_rule_settings.hpp"
+#include "mkeybo/components/keyboard/mapping_rules/multi_mapping_rule_settings.hpp"
 
 
 inline std::ostream& operator<<(std::ostream& out, const mkeybo::Keycode& keycode);
@@ -73,65 +73,65 @@ inline std::string_view get_keycode_event_type_name(const KeycodeEventType& type
 }
 
 template <size_t switches_count>
-void print_settings(KeyboardSettings<switches_count>* settings)
+void print_settings(Keyboard<switches_count>* keyboard)
 {
     std::cout << "Settings:" << std::endl;
-    std::cout << "switches_refresh_interval_ms: " << std::to_string(settings->switches_refresh_interval_ms) <<
+    std::cout << "switches_refresh_interval_ms: " << std::to_string(keyboard->switches_refresh_interval_ms) <<
         std::endl;
-    std::cout << "press_min_interval_ms: " << std::to_string(settings->press_min_interval_ms) << std::endl;
-    std::cout << "tap_dance_max_interval_ms: " << std::to_string(settings->tap_dance_max_interval_ms) << std::endl;
-    std::cout << "hold_min_interval_ms: " << std::to_string(settings->hold_min_interval_ms) << std::endl;
-    std::cout << "report_send_interval_ms: " << std::to_string(settings->report_send_interval_ms) << std::endl;
-    std::cout << "press_min_interval_cycles: " << std::to_string(settings->press_min_interval_cycles) << std::endl;
-    std::cout << "tap_dance_max_interval_cycles: " << std::to_string(settings->tap_dance_max_interval_cycles) <<
+    std::cout << "press_min_interval_ms: " << std::to_string(keyboard->press_min_interval_ms) << std::endl;
+    std::cout << "tap_dance_max_interval_ms: " << std::to_string(keyboard->tap_dance_max_interval_ms) << std::endl;
+    std::cout << "hold_min_interval_ms: " << std::to_string(keyboard->hold_min_interval_ms) << std::endl;
+    std::cout << "report_send_interval_ms: " << std::to_string(keyboard->report_send_interval_ms) << std::endl;
+    std::cout << "press_min_interval_cycles: " << std::to_string(keyboard->press_min_interval_cycles) << std::endl;
+    std::cout << "tap_dance_max_interval_cycles: " << std::to_string(keyboard->tap_dance_max_interval_cycles) <<
         std::endl;
-    std::cout << "hold_min_interval_cycles: " << std::to_string(settings->hold_min_interval_cycles) << std::endl;
+    std::cout << "hold_min_interval_cycles: " << std::to_string(keyboard->hold_min_interval_cycles) << std::endl;
 }
 
-inline void print_settings_rules_tap_dance(keyboard_rule_settings::TapDanceRuleSettings* tap_dance_settings)
-{
-    for (auto& [trigger_keycode, actions] : tap_dance_settings->actions)
-    {
-        std::cout << "tap_dance|trigger: " << trigger_keycode << std::endl;
-        for (auto& [counter, action_keycode] : actions)
-        {
-            std::cout << "    " << std::to_string(counter) << " --> " << action_keycode << std::endl;
-        }
-    }
-}
-
-inline void print_settings_rules_multi_mapping(keyboard_rule_settings::MultiMappingRuleSettings* multi_mapping_settings)
-{
-     for (auto& [triggers, keycode] : multi_mapping_settings->actions)
-     {
-         std::cout << "multi_mapping|triggers: ";
-         for (auto& trigger : triggers)
-         {
-             std::cout << trigger << " ";
-         }
-         std::cout << "--> " << keycode << std::endl;
-     }
-}
-
-inline void print_settings_rules(std::map<std::string, keyboard_rule_settings::BaseRuleSettings*> &rules)
-{
-    for (auto& [name, settings] : rules)
-    {
-        std::cout << name << std::endl;
-        if (name == keyboard_rule_settings::rule_name_tap_dance)
-        {
-            const auto tap_dance_settings = reinterpret_cast<keyboard_rule_settings::TapDanceRuleSettings*>(settings);
-            print_settings_rules_tap_dance(tap_dance_settings);
-            continue;
-        }
-        if (name == keyboard_rule_settings::rule_name_multi_mapping)
-        {
-            const auto multi_mapping_settings = reinterpret_cast<keyboard_rule_settings::MultiMappingRuleSettings*>(
-                settings);
-            print_settings_rules_multi_mapping(multi_mapping_settings);
-        }
-    }
-}
+// inline void print_settings_rules_tap_dance(keyboard_rule_settings::TapDanceRuleSettings* tap_dance_settings)
+// {
+//     for (auto& [trigger_keycode, actions] : tap_dance_settings->actions)
+//     {
+//         std::cout << "tap_dance|trigger: " << trigger_keycode << std::endl;
+//         for (auto& [counter, action_keycode] : actions)
+//         {
+//             std::cout << "    " << std::to_string(counter) << " --> " << action_keycode << std::endl;
+//         }
+//     }
+// }
+//
+// inline void print_settings_rules_multi_mapping(keyboard_rule_settings::MultiMappingRuleSettings* multi_mapping_settings)
+// {
+//      for (auto& [triggers, keycode] : multi_mapping_settings->actions)
+//      {
+//          std::cout << "multi_mapping|triggers: ";
+//          for (auto& trigger : triggers)
+//          {
+//              std::cout << trigger << " ";
+//          }
+//          std::cout << "--> " << keycode << std::endl;
+//      }
+// }
+//
+// inline void print_settings_rules(std::map<std::string, keyboard_rule_settings::BaseRuleSettings*> &rules)
+// {
+//     for (auto& [name, settings] : rules)
+//     {
+//         std::cout << name << std::endl;
+//         if (name == keyboard_rule_settings::rule_name_tap_dance)
+//         {
+//             const auto tap_dance_settings = reinterpret_cast<keyboard_rule_settings::TapDanceRuleSettings*>(settings);
+//             print_settings_rules_tap_dance(tap_dance_settings);
+//             continue;
+//         }
+//         if (name == keyboard_rule_settings::rule_name_multi_mapping)
+//         {
+//             const auto multi_mapping_settings = reinterpret_cast<keyboard_rule_settings::MultiMappingRuleSettings*>(
+//                 settings);
+//             print_settings_rules_multi_mapping(multi_mapping_settings);
+//         }
+//     }
+// }
 
 
 }

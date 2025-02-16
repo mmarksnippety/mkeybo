@@ -8,11 +8,13 @@
 #include <algorithm>
 #include <array>
 #include <map>
+#include <memory>
 #include <ranges>
 #include "pico/unique_id.h"
 #include "usb_reports.hpp"
 #include "input_device.hpp"
 #include "actions.hpp"
+#include "hid_controller_settings.hpp"
 
 
 namespace mkeybo {
@@ -36,19 +38,39 @@ protected:
     uint8_t action_buffer_index = 0;
     // input devices
     std::vector<InputDevice*> input_devices{};
+    // tasks
+    uint16_t main_task_interval_ms{5};
+    uint32_t last_main_task_ts{};
+    uint16_t usb_task_interval_ms{5};
+    uint32_t last_usb_task_ts{};
 
 public:
-    HidController(const std::string_view device_name, const std::string_view manufactured_name,
-                  const std::map<uint16_t, actions::ActionExecutor*>& action_executors,
-                  const std::vector<InputDevice*>& input_devices) :
+    HidController(
+        const std::string_view device_name,
+        const std::string_view manufactured_name,
+        const std::map<uint16_t, actions::ActionExecutor*>& action_executors,
+        const std::vector<InputDevice*>& input_devices,
+        const std::unique_ptr<HidControllerSettings>& settings
+        ) :
         device_name(device_name),
         manufactured_name(manufactured_name),
         action_executors(action_executors),
         input_devices(input_devices)
     {
+        apply_settings(settings);
         setup_usb_reports();
         setup_usb_configuration_description();
         reset_actions();
+    }
+
+    void apply_settings(const std::unique_ptr<HidControllerSettings>& settings)
+    {
+        if (!settings)
+        {
+            return;
+        }
+        main_task_interval_ms = settings->main_task_interval_ms;
+        usb_task_interval_ms = settings->usb_task_interval_ms;
     }
 
     virtual ~HidController()
@@ -71,6 +93,15 @@ public:
      * Lifecycle
      */
 
+    void main_task_async()
+    {
+        if (const auto current_ts = get_ms_since_boot(); current_ts - last_main_task_ts >= main_task_interval_ms)
+        {
+            main_task();
+            last_main_task_ts = current_ts;
+        }
+    }
+
     /**
      * Executes the main task of the HID controller.
      *
@@ -83,10 +114,26 @@ public:
      */
     void main_task()
     {
-        update_state();
-        update_usb_reports();
-        update_actions();
+        reset_actions();
+        for (const auto& input_device : input_devices)
+        {
+            // TODO: generate two event: update_state, and report generated
+            if (input_device->update_state_async())
+            {
+                input_device->update_usb_reports(this);
+                input_device->update_actions(this);
+            }
+        }
         execute_actions();
+    }
+
+    void usb_task_async()
+    {
+        if (const auto current_ts = mkeybo::get_ms_since_boot(); current_ts - last_usb_task_ts >= usb_task_interval_ms)
+        {
+            usb_task();
+            last_usb_task_ts = current_ts;
+        }
     }
 
     void usb_task()
@@ -237,35 +284,6 @@ public:
                 break;
             }
             current_usb_report_index++;
-        }
-    }
-
-    /**
-     * Input devices
-     */
-
-    void update_state() const
-    {
-        for (const auto& input_device : input_devices)
-        {
-            input_device->update_state();
-        }
-    }
-
-    void update_usb_reports()
-    {
-        for (const auto& input_device : input_devices)
-        {
-            input_device->update_usb_reports(this);
-        }
-    }
-
-    void update_actions()
-    {
-        reset_actions();
-        for (const auto& input_devices : input_devices)
-        {
-            input_devices->update_actions(this);
         }
     }
 

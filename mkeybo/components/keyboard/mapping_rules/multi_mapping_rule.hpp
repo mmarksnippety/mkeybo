@@ -1,33 +1,42 @@
 #pragma once
 
-#include "../keyboard_settings.hpp"
-#include "../keyboard_rule_settings/multi_mapping_rule_settings.hpp"
-#include "base_mapping_rule.hpp"
+#include "mkeybo/components/base.hpp"
+#include "mkeybo/components/keyboard/mapping_rule.hpp"
+#include "mkeybo/components/keyboard/mapping_rules/multi_mapping_rule_settings.hpp"
 
 
-namespace mkeybo::mapping_rule {
+namespace mkeybo::keyboard::mapping_rule {
 
 template <size_t switches_count, size_t keycodes_buffer_size>
-class MultiMappingRule final : public BaseMappingRule<switches_count, keycodes_buffer_size>
+class MultiMappingRule final : public MappingRule<switches_count, keycodes_buffer_size>
 {
+    std::vector<std::pair<std::vector<Keycode>, Keycode>> actions{};
 
 public:
+    [[nodiscard]] std::string get_settings_name() const override
+    {
+        return rule_name_multi_mapping;
+    };
+
+    void apply_settings(const std::map<std::string, MappingRuleSettings*>& rule_settings) override
+    {
+        if (const auto settings_it = rule_settings.find(get_settings_name()); settings_it != rule_settings.end())
+        {
+            const auto settings = reinterpret_cast<MultiMappingRuleSettings*>(settings_it->second);
+            actions = settings->actions;
+        }
+    }
+
     bool map(Keyboard<switches_count, keycodes_buffer_size>* keyboard) override
     {
-        const auto multi_settings = get_rule_settings<keyboard_rule_settings::MultiMappingRuleSettings>(
-            keyboard->get_settings(), keyboard_rule_settings::rule_name_multi_mapping);
-        if (!multi_settings)
-        {
-            return false;
-        }
-        for (const auto& [src_keycodes, keycode] : multi_settings->actions)
+        for (const auto& [src_keycodes, keycode] : actions)
         {
             if (auto src_keycodes_events = get_src_keycode_event(keyboard, src_keycodes); src_keycodes_events.
                 size() >= src_keycodes.size())
             {
                 cancel_src_keycodes_events(src_keycodes_events);
                 keyboard->push_keycode_event(keycode, std::numeric_limits<uint8_t>::max(),
-                                                   KeycodeEventType::finalized);
+                                             KeycodeEventType::finalized);
                 return false;
             }
         }

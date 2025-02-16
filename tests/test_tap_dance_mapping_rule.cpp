@@ -2,7 +2,7 @@
 #include <cassert>
 #include <iostream>
 #include "fixtures.hpp"
-#include "mkeybo/components/keyboard_settings.hpp"
+#include "../mkeybo/components/keyboard/settings.hpp"
 #include "mkeybo/components/keyboard_rule_settings/tap_dance_rule_settings.hpp"
 #include "mkeybo/components/base.hpp"
 #include "mkeybo/factories.hpp"

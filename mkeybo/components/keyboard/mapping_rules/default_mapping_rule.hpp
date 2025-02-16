@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../base.hpp"
-#include "base_mapping_rule.hpp"
+#include "mkeybo/components/base.hpp"
+#include "mkeybo/components/keyboard/mapping_rule.hpp"
 
 
-namespace mkeybo::mapping_rule {
+namespace mkeybo::keyboard::mapping_rule {
 
 
 /**
@@ -16,7 +16,7 @@ namespace mkeybo::mapping_rule {
  *
  */
 template <size_t switches_count, size_t keycodes_buffer_size>
-class DefaultMappingRule final : public BaseMappingRule<switches_count, keycodes_buffer_size>
+class DefaultMappingRule final : public MappingRule<switches_count, keycodes_buffer_size>
 {
 public:
     bool map(Keyboard<switches_count, keycodes_buffer_size>* keyboard) override
@@ -42,20 +42,21 @@ public:
 
     Keycode get_keycode(Keyboard<switches_count, keycodes_buffer_size>* keyboard, const uint8_t switch_index)
     {
-        auto settings = keyboard->get_settings();
         // get from layers
-        for (int8_t layer_index = settings->layers.size() - 1; layer_index >= 0; --layer_index)
+        auto& layers = keyboard->get_layers();
+        for (int8_t layer_index = layers.size() - 1; layer_index >= 0; --layer_index)
         {
             if (keyboard->is_layer_active(layer_index))
             {
-                if (auto keycode = settings->layers[layer_index]->keycodes[switch_index]; !keycode.is_null())
+                if (auto keycode = layers[layer_index]->keycodes[switch_index]; !keycode.is_null())
                 {
                     return keycode;
                 }
             }
         }
         // get from layout
-        return settings->layouts[keyboard->get_active_layout()]->keycodes[switch_index];
+        auto& layouts = keyboard->get_layouts();
+        return layouts[keyboard->get_active_layout()]->keycodes[switch_index];
     }
 };
 

@@ -9,7 +9,7 @@
  *
  */
 
-namespace mkeybo::switch_reader {
+namespace mkeybo::keyboard::switch_reader {
 
 //TODO!
 // struct MatrixSwitchReaderConfig

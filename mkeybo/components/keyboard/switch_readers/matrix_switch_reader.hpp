@@ -2,7 +2,7 @@
 
 #include <bitset>
 #include "pico/stdlib.h"
-#include "../switch_reader.hpp"
+#include "mkeybo/components/keyboard/switch_reader.hpp"
 
 
 /**
@@ -12,7 +12,7 @@
  * state in this column.
  */
 
-namespace mkeybo::switch_reader {
+namespace mkeybo::keyboard::switch_reader {
 
 struct MatrixSwitchReaderConfig
 {

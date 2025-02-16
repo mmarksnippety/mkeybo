@@ -10,16 +10,16 @@
 template <size_t switches_count, size_t keycodes_buffer_size = 20>
 class Keyboard final : public mkeybo::Keyboard<switches_count, keycodes_buffer_size>
 {
-PWMLed *left_led;
-PWMLed *right_led;
+    PWMLed* left_led;
+    PWMLed* right_led;
 
 public:
     explicit Keyboard(const uint8_t left_led_pin, const uint8_t right_led_pin) :
         mkeybo::Keyboard<switches_count>(
             mkeybo::create_switch_reader_matrix<switches_count>(switch_reader_config),
             mkeybo::create_switch_events_generator<switches_count>(),
-            mkeybo::create_keycode_mapping_rules<switches_count, keycodes_buffer_size>()
-        ), left_led(new PWMLed(left_led_pin)), right_led(new PWMLed(right_led_pin))
+            mkeybo::create_keycode_mapping_rules<switches_count, keycodes_buffer_size>(), 50
+            ), left_led(new PWMLed(left_led_pin)), right_led(new PWMLed(right_led_pin))
     {
     }
 
@@ -37,19 +37,28 @@ public:
 
     void on_generate_keycodes() override
     {
-        if (this->is_layer_active(3)) {
+        if (this->is_layer_active(3))
+        {
             left_led->set_duty(10);
             right_led->set_duty(10);
-        } else if (this->is_layer_active(2)) {
+        }
+        else if (this->is_layer_active(2))
+        {
             left_led->set_duty(100);
             right_led->set_duty(100);
-        } else if (this->is_layer_active(1)) {
+        }
+        else if (this->is_layer_active(1))
+        {
             left_led->set_duty(0);
             right_led->set_duty(100);
-        } else if (this->is_layer_active(0)) {
+        }
+        else if (this->is_layer_active(0))
+        {
             left_led->set_duty(100);
             right_led->set_duty(0);
-        } else {
+        }
+        else
+        {
             left_led->set_duty(0);
             right_led->set_duty(0);
         }

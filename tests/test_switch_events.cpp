@@ -1,7 +1,7 @@
 #include <cassert>
 #include <iostream>
 #include "components/base.hpp"
-#include "components/keyboard_settings.hpp"
+#include "../mkeybo/components/keyboard/settings.hpp"
 #include "components/switch_events.hpp"
 #include "test_switch_events.hpp"
 

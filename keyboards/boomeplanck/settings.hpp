@@ -2,7 +2,7 @@
 
 #include "config.hpp"
 #include "mkeybo/factories.hpp"
-#include "mkeybo/components/keyboard_settings.hpp"
+#include "../../mkeybo/components/keyboard/settings.hpp"
 #include "mkeybo/components/keyboard_rule_settings/tap_dance_rule_settings.hpp"
 #include "mkeybo/components/keyboard_rule_settings/multi_mapping_rule_settings.hpp"
 #include "mkeybo/components/base.hpp"
@@ -133,8 +133,7 @@ auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
         50, // switches_refresh_interval_ms
         50, // press_min_interval_ms
         150, // tap_dance_max_interval_ms
-        200, // hold_min_interval_ms
-        10 // usb report interval
+        200 // hold_min_interval_ms
     );
 
 }

@@ -1,18 +1,19 @@
+#include <memory>
 #include "config.hpp"
 #include "factories.hpp"
 #include "mkeybo/factories.hpp"
-#include "mkeybo/components/keyboard_settings.hpp"
-#include "mkeybo/components/keyboard_rule_settings/tap_dance_rule_settings.hpp"
-#include "mkeybo/components/keyboard_rule_settings/multi_mapping_rule_settings.hpp"
+#include "mkeybo/components/keyboard/settings.hpp"
+#include "mkeybo/components/keyboard/mapping_rules/tap_dance_mapping_rule_settings.hpp"
+#include "mkeybo/components/keyboard/mapping_rules/multi_mapping_rule_settings.hpp"
 #include "mkeybo/components/base.hpp"
+#include "mkeybo/components/actions.hpp"
 #include "tusb.h"
 
 
-template <size_t switches_count>
-auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
+std::unique_ptr<mkeybo::keyboard::KeyboardSettings<keyboard_config.switches_count>> create_keyboard_settings()
 {
     // clang-format off
-    auto layout = new mkeybo::KeyboardSettingsLayer<switches_count>{
+    auto layout = new mkeybo::keyboard::KeyboardLayer<keyboard_config.switches_count>{
         .name{"qwerty"},
         .keycodes{
             // 1
@@ -29,7 +30,7 @@ auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
             H_K(HID_KEY_SPACE), LAYER_K(1), N_K(), N_K(), N_K(),
        }
     };
-    auto layer_down = new mkeybo::KeyboardSettingsLayer<switches_count>{
+    auto layer_down = new mkeybo::keyboard::KeyboardLayer<keyboard_config.switches_count>{
         .name{"down"},
         .keycodes{
             // 1
@@ -46,7 +47,7 @@ auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
             N_K(), N_K(), N_K(), N_K(), N_K(),
         }
     };
-    auto layer_up = new mkeybo::KeyboardSettingsLayer<switches_count>{
+    auto layer_up = new mkeybo::keyboard::KeyboardLayer<keyboard_config.switches_count>{
         .name{"up"},
         .keycodes{
             // 1
@@ -63,7 +64,7 @@ auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
             N_K(), N_K(), N_K(), N_K(), N_K(),
         }
     };
-    auto layer_multi = new mkeybo::KeyboardSettingsLayer<switches_count>{
+    auto layer_multi = new mkeybo::keyboard::KeyboardLayer<keyboard_config.switches_count>{
         .name{"multi"},
         .keycodes{
             // 1
@@ -80,30 +81,57 @@ auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
             N_K(), N_K(), N_K(), N_K(), N_K(),
         }
     };
-    auto tap_dance_config = new mkeybo::keyboard_rule_settings::TapDanceRuleSettings({
+    auto tap_dance_config = new mkeybo::keyboard::mapping_rule::TapDanceRuleSettings({
         {H_K(HID_KEY_Z), {{255, H_K(HID_KEY_SHIFT_LEFT)}}},
         {H_K(HID_KEY_D), {{3, ACTION_K(mkeybo::actions::action_reboot_id)}}}
     });
-    auto multi_layer_config = new mkeybo::keyboard_rule_settings::MultiMappingRuleSettings( {
+    auto multi_layer_config = new mkeybo::keyboard::mapping_rule::MultiMappingRuleSettings( {
         {{LAYER_K(0), LAYER_K(1)}, LAYER_K(2)}
     });
     // clang-format on
-    return new mkeybo::KeyboardSettings<switches_count>(
-        "qwerty",
-        {layout},
-        {layer_down, layer_up, layer_multi},
-        {
-            {mkeybo::keyboard_rule_settings::rule_name_tap_dance, tap_dance_config},
-            {mkeybo::keyboard_rule_settings::rule_name_multi_mapping, multi_layer_config},
-        },
-        50, // switches_refresh_interval_ms
-        50, // press_min_interval_ms
-        150, // tap_dance_max_interval_ms
-        200, // hold_min_interval_ms
-        10 // usb report interval
+    return std::unique_ptr<mkeybo::keyboard::KeyboardSettings<keyboard_config.switches_count>>(
+        new mkeybo::keyboard::KeyboardSettings<keyboard_config.switches_count>(
+            "qwerty",
+            {layout},
+            {layer_down, layer_up, layer_multi},
+            {
+                {mkeybo::keyboard::mapping_rule::rule_name_tap_dance, tap_dance_config},
+                {mkeybo::keyboard::mapping_rule::rule_name_multi_mapping, multi_layer_config},
+            },
+            50,
+            50,
+            150,
+            200
+            )
         );
 }
 
 
-template auto create_keyboard_settings<keyboard_config.switches_count>()
-    -> mkeybo::KeyboardSettings<keyboard_config.switches_count>*;
+std::unique_ptr<mkeybo::HidControllerSettings> create_hid_controller_settings()
+{
+    return std::make_unique<mkeybo::HidControllerSettings>(2, 10);
+}
+
+
+Keyboard<keyboard_config.switches_count>* create_keyboard()
+{
+    const auto keyboard = new Keyboard<keyboard_config.switches_count>();
+    // keyboard->apply_settings(create_keyboard_settings());
+    return keyboard;
+}
+
+
+mkeybo::HidController* create_hid_controller(Keyboard<keyboard_config.switches_count>* keyboard)
+{
+    const auto hid_controller = new mkeybo::HidController(
+        keyboard_config.keyboard_name,
+        keyboard_config.manufactured_name,
+        {
+            {mkeybo::actions::action_reboot_id, new mkeybo::actions::ActionExecutorReboot()},
+            {mkeybo::actions::action_reboot_to_bootloader_id, new mkeybo::actions::ActionExecutorRebootToBootloader()},
+        },
+        {keyboard},
+        create_hid_controller_settings()
+        );
+    return hid_controller;
+}

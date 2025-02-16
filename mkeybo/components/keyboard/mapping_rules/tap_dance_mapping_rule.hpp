@@ -2,33 +2,46 @@
 
 #include <limits>
 #include <map>
-#include "../keyboard_settings.hpp"
-#include "../keyboard_rule_settings/tap_dance_rule_settings.hpp"
-#include "../base.hpp"
-#include "base_mapping_rule.hpp"
+#include <algorithm>
+#include "mkeybo/components/base.hpp"
+#include "mkeybo/components/keyboard/mapping_rule.hpp"
+#include "mkeybo/components/keyboard/mapping_rules/tap_dance_mapping_rule_settings.hpp"
 
 
-namespace mkeybo::mapping_rule {
+namespace mkeybo::keyboard::mapping_rule {
+
 constexpr uint8_t tap_dance_hold_action = std::numeric_limits<uint8_t>::max();
 
 template <size_t switches_count, size_t keycodes_buffer_size>
-class TapDanceMappingRule final : public BaseMappingRule<switches_count, keycodes_buffer_size>
+class TapDanceMappingRule final : public MappingRule<switches_count, keycodes_buffer_size>
 {
+    std::map<Keycode, std::map<uint8_t, Keycode>> actions;
+
 public:
+    [[nodiscard]] std::string get_settings_name() const override
+    {
+        return rule_name_tap_dance;
+    };
+
+    void apply_settings(const std::map<std::string, MappingRuleSettings*>& rule_settings) override
+    {
+        if (const auto settings_it = rule_settings.find(get_settings_name()); settings_it != rule_settings.end())
+        {
+            const auto settings = reinterpret_cast<TapDanceRuleSettings*>(settings_it->second);
+            actions = settings->actions;
+        }
+    }
+
     bool map(Keyboard<switches_count, keycodes_buffer_size>* keyboard) override
     {
-        const auto tap_dance_settings = get_rule_settings<keyboard_rule_settings::TapDanceRuleSettings, switches_count>(
-            keyboard->get_settings(), keyboard_rule_settings::rule_name_tap_dance);
-        if (!tap_dance_settings)
+        if (!actions.empty())
         {
-            return false;
-        }
-        for (auto& keycode_event : keyboard->get_filtered_keycode_events())
-        {
-            if (auto const actions = tap_dance_settings->actions.find(keycode_event.keycode);
-                actions != tap_dance_settings->actions.end())
+            for (auto& keycode_event : keyboard->get_filtered_keycode_events())
             {
-                map_event(keyboard, keycode_event, actions->second);
+                if (auto const action = actions.find(keycode_event.keycode); action != actions.end())
+                {
+                    map_event(keyboard, keycode_event, action->second);
+                }
             }
         }
         return false;

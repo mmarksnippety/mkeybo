@@ -1,13 +1,13 @@
 #pragma once
 
-#include "../base.hpp"
-#include "base_mapping_rule.hpp"
+#include "mkeybo/components/base.hpp"
+#include "mkeybo/components/keyboard/mapping_rule.hpp"
 
 
-namespace mkeybo::mapping_rule {
+namespace mkeybo::keyboard::mapping_rule {
 
 template <size_t switches_count, size_t keycodes_buffer_size>
-class ChangeLayerMappingRule final : public BaseMappingRule<switches_count, keycodes_buffer_size>
+class ChangeLayerMappingRule final : public MappingRule<switches_count, keycodes_buffer_size>
 {
 public:
     bool map(Keyboard<switches_count, keycodes_buffer_size>* keyboard) override

@@ -1,12 +1,12 @@
 #pragma once
 
-#include "components/mapping_rules/change_layer_mapping_rule.hpp"
-#include "components/mapping_rules/change_layout_mapping_rule.hpp"
-#include "components/mapping_rules/default_mapping_rule.hpp"
-#include "components/mapping_rules/tap_dance_mapping_rule.hpp"
-#include "components/mapping_rules/multi_mapping_rule.hpp"
-#include "components/switch_events.hpp"
-#include "components/switch_readers/matrix_switch_reader.hpp"
+#include "components/keyboard/mapping_rules/change_layer_mapping_rule.hpp"
+#include "components/keyboard/mapping_rules/change_layout_mapping_rule.hpp"
+#include "components/keyboard/mapping_rules/default_mapping_rule.hpp"
+#include "components/keyboard/mapping_rules/tap_dance_mapping_rule.hpp"
+#include "components/keyboard/mapping_rules/multi_mapping_rule.hpp"
+#include "components/keyboard/switch_events_generator.hpp"
+#include "components/keyboard/switch_readers/matrix_switch_reader.hpp"
 
 
 /**
@@ -44,29 +44,33 @@
 
 namespace mkeybo {
 
-template <size_t switches_count>
-SwitchEventsGenerator<switches_count>* create_switch_events_generator()
-{
-    return new SwitchEventsGenerator<switches_count>();
-}
-
-template <size_t switches_count>
-switch_reader::MatrixSwitchReader<switches_count>* create_switch_reader_matrix(
-    const switch_reader::MatrixSwitchReaderConfig& config)
-{
-    return new switch_reader::MatrixSwitchReader<switches_count>(config);
-}
 
 template <size_t switches_count, size_t keycodes_buffer_size>
-std::vector<mapping_rule::BaseMappingRule<switches_count, keycodes_buffer_size>*> create_keycode_mapping_rules()
+keyboard::SwitchEventsGenerator<switches_count, keycodes_buffer_size>* create_switch_events_generator()
+{
+    return new keyboard::SwitchEventsGenerator<switches_count, keycodes_buffer_size>();
+}
+
+
+template <size_t switches_count>
+keyboard::switch_reader::MatrixSwitchReader<switches_count>* create_switch_reader_matrix(
+    const keyboard::switch_reader::MatrixSwitchReaderConfig& config)
+{
+    return new keyboard::switch_reader::MatrixSwitchReader<switches_count>(config);
+}
+
+
+template <size_t switches_count, size_t keycodes_buffer_size>
+std::vector<keyboard::MappingRule<switches_count, keycodes_buffer_size>*> create_keycode_mapping_rules()
 {
     return {
-        new mapping_rule::DefaultMappingRule<switches_count, keycodes_buffer_size>{},
-        new mapping_rule::TapDanceMappingRule<switches_count, keycodes_buffer_size>{},
-        new mapping_rule::MultiMappingRule<switches_count, keycodes_buffer_size>{},
-        new mapping_rule::ChangeLayoutMappingRule<switches_count, keycodes_buffer_size>{},
-        new mapping_rule::ChangeLayerMappingRule<switches_count, keycodes_buffer_size>{},
+        new keyboard::mapping_rule::DefaultMappingRule<switches_count, keycodes_buffer_size>{},
+        new keyboard::mapping_rule::TapDanceMappingRule<switches_count, keycodes_buffer_size>{},
+        new keyboard::mapping_rule::MultiMappingRule<switches_count, keycodes_buffer_size>{},
+        new keyboard::mapping_rule::ChangeLayoutMappingRule<switches_count, keycodes_buffer_size>{},
+        new keyboard::mapping_rule::ChangeLayerMappingRule<switches_count, keycodes_buffer_size>{},
     };
 }
+
 
 }

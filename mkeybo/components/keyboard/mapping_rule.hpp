@@ -1,17 +1,29 @@
 #pragma once
 
+#include "mkeybo/components/base.hpp"
+#include <map>
 
-#include "../base.hpp"
+
+namespace mkeybo::keyboard {
 
 
-namespace mkeybo::mapping_rule {
+struct MappingRuleSettings
+{
+};
+
 
 template <size_t switches_count, size_t keycodes_buffer_size>
-class BaseMappingRule
+class MappingRule
 {
 public:
-    BaseMappingRule() = default;
-    virtual ~BaseMappingRule() = default;
+    MappingRule() = default;
+    virtual ~MappingRule() = default;
+
+    [[nodiscard]] virtual std::string get_settings_name() const { return ""; }
+
+    virtual void apply_settings(const std::map<std::string, MappingRuleSettings*>& rule_settings)
+    {
+    }
 
     /**
      * Method map may map some switches to keycode or remap some keycode to other keycode,

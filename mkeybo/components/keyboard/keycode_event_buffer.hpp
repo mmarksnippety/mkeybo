@@ -1,11 +1,12 @@
 #pragma once
 
-#include "base.hpp"
+#include "mkeybo/components/base.hpp"
 #include <array>
 #include <limits>
 #include <ranges>
 
-namespace mkeybo {
+
+namespace mkeybo::keyboard {
 
 template <size_t keycodes_buffer_size>
 class KeycodeEventBuffer

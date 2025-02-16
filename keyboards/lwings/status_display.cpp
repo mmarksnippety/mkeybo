@@ -38,15 +38,15 @@ void StatusDisplay::show_keyboard_status(mkeybo::Keyboard<keyboard_config.switch
     const auto font = font_12x16;
     hardware->clear();
     drawText(hardware, font, "layers", 0, 0);
-    for (auto layer_index = 0; const auto& layer_settings : keyboard->get_settings()->layers)
-    {
-        if (keyboard->is_layer_active(layer_index))
-        {
-            std::cout << "layer " << layer_settings->name << " is active" << std::endl;
-            drawText(hardware, font, layer_settings->name.c_str(), 0, line_index);
-            line_index -= line_height;
-        }
-        layer_index++;
-    }
+    // for (auto layer_index = 0; const auto& layer_settings : keyboard->get_settings()->layers)
+    // {
+    //     if (keyboard->is_layer_active(layer_index))
+    //     {
+    //         std::cout << "layer " << layer_settings->name << " is active" << std::endl;
+    //         drawText(hardware, font, layer_settings->name.c_str(), 0, line_index);
+    //         line_index -= line_height;
+    //     }
+    //     layer_index++;
+    // }
     hardware->sendBuffer();
 }

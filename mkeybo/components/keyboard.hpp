@@ -7,11 +7,14 @@
 #include "base.hpp"
 #include "hid_controller.hpp"
 #include "input_device.hpp"
-#include "keyboard_settings.hpp"
-#include "keycode_event_buffer.hpp"
-#include "mapping_rules/base_mapping_rule.hpp"
-#include "switch_events.hpp"
-#include "switch_reader.hpp"
+#include "keyboard/settings.hpp"
+#include "keyboard/keycode_event_buffer.hpp"
+#include "keyboard/mapping_rule.hpp"
+#include "keyboard/switch_events_generator.hpp"
+#include "keyboard/layer.hpp"
+#include "keyboard/settings.hpp"
+#include "keyboard/led_status.hpp"
+#include "keyboard/switch_reader.hpp"
 #include "usb_reports.hpp"
 
 
@@ -23,27 +26,38 @@ class Keyboard : public InputDevice
 {
 protected:
     uint8_t start_report_id{0};
-    std::vector<bool> active_layers{};
-    std::vector<bool> active_layers_prev_cycle{};
+    // layout
+    std::vector<keyboard::KeyboardLayer<switches_count>*> layouts;
     uint8_t active_layout{};
     size_t layout_size{};
     uint8_t active_layout_prev_cycle{};
+    // layers
+    std::vector<keyboard::KeyboardLayer<switches_count>*> layers;
+    std::vector<bool> active_layers{};
+    std::vector<bool> active_layers_prev_cycle{};
+    // timing settings
+    uint16_t press_min_interval_ms{};
+    uint16_t tap_dance_max_interval_ms{};
+    uint16_t hold_min_interval_ms{};
+    uint8_t press_min_interval_cycles{};
+    uint8_t tap_dance_max_interval_cycles{};
+    uint8_t hold_min_interval_cycles{};
+    // state
     std::bitset<switches_count> switch_state{};
     std::array<SwitchEvent, switches_count> switch_events{};
-    KeycodeEventBuffer<keycodes_buffer_size> keycode_events_prev_cycle{};
-    KeycodeEventBuffer<keycodes_buffer_size> keycode_events{};
-    LedStatus led_status{};
-    SwitchReader<switches_count>* switch_reader;
-    SwitchEventsGenerator<switches_count>* switch_events_generator;
-    std::vector<mapping_rule::BaseMappingRule<switches_count, keycodes_buffer_size>*> keycodes_mapping_rules;
-    KeyboardSettings<switches_count>* settings{};
+    keyboard::KeycodeEventBuffer<keycodes_buffer_size> keycode_events_prev_cycle{};
+    keyboard::KeycodeEventBuffer<keycodes_buffer_size> keycode_events{};
+    // other
+    keyboard::LedStatus led_status{};
+    keyboard::SwitchReader<switches_count>* switch_reader;
+    keyboard::SwitchEventsGenerator<switches_count, keycodes_buffer_size>* switch_events_generator;
+    std::vector<keyboard::MappingRule<switches_count, keycodes_buffer_size>*> keycodes_mapping_rules;
 
 public:
-    Keyboard(SwitchReader<switches_count>* switch_reader,
-             SwitchEventsGenerator<switches_count>* switch_events_generator,
-             const std::vector<mapping_rule::BaseMappingRule<switches_count, keycodes_buffer_size>*>&
-             keycode_mapping_rules
-        ) :
+    Keyboard(keyboard::SwitchReader<switches_count>* switch_reader,
+             keyboard::SwitchEventsGenerator<switches_count, keycodes_buffer_size>* switch_events_generator,
+             const std::vector<keyboard::MappingRule<switches_count, keycodes_buffer_size>*>&
+             keycode_mapping_rules) :
         switch_reader(switch_reader), switch_events_generator(switch_events_generator),
         keycodes_mapping_rules(keycode_mapping_rules)
     {
@@ -57,24 +71,34 @@ public:
         {
             delete keycodes_mapping_rule;
         }
-        delete settings;
     }
 
     /**
      * Settings
      */
-
-    KeyboardSettings<switches_count>* get_settings() { return settings; }
-
-    void set_settings(KeyboardSettings<switches_count>* settings)
+    void apply_settings(const std::unique_ptr<InputDeviceSettings>& settings) override
     {
-        this->settings = settings;
-        layout_size = this->settings->layouts.size();
-        active_layers.resize(this->settings->layers.size());
-        active_layers_prev_cycle.resize(this->settings->layers.size());
+        InputDevice::apply_settings(settings);
+        auto keyboard_settings = reinterpret_cast<keyboard::KeyboardSettings<switches_count>*>(settings.get());
+        press_min_interval_ms = keyboard_settings->press_min_interval_ms;
+        tap_dance_max_interval_ms = keyboard_settings->tap_dance_max_interval_ms;
+        hold_min_interval_ms = keyboard_settings->hold_min_interval_ms;
+        press_min_interval_cycles = static_cast<uint8_t>(press_min_interval_ms / update_state_interval_ms);
+        tap_dance_max_interval_cycles = static_cast<uint8_t>(tap_dance_max_interval_ms / update_state_interval_ms);
+        hold_min_interval_cycles = static_cast<uint8_t>(hold_min_interval_ms / update_state_interval_ms);
+        for (auto& keycodes_mapping_rule : keycodes_mapping_rules)
+        {
+            keycodes_mapping_rule->apply_settings(keyboard_settings->rules);
+        }
+        layout_size = keyboard_settings->layouts.size();
+        active_layers.resize(keyboard_settings->layers.size());
+        active_layers_prev_cycle.resize(keyboard_settings->layers.size());
         reset();
-        on_update_settings();
     }
+
+    [[nodiscard]] uint8_t get_press_min_interval_cycles() const {return press_min_interval_cycles; }
+    [[nodiscard]] uint8_t get_tap_dance_max_interval_cycles() const { return  tap_dance_max_interval_cycles; }
+    [[nodiscard]] uint8_t get_hold_min_interval_cycles() const { return hold_min_interval_cycles; }
 
     /**
      * Layers
@@ -90,6 +114,8 @@ public:
         }
         active_layers[layer_index] = active;
     }
+
+    auto& get_layers() { return layers; }
 
     auto& get_active_layers() { return active_layers; }
 
@@ -111,6 +137,8 @@ public:
         }
         active_layout = layout_index;
     }
+
+    auto& get_layouts() { return layouts; }
 
     auto get_active_layout() { return active_layout; }
 
@@ -154,7 +182,7 @@ public:
         return keycode_events.get_filtered_events(keycode_type, keycode_event_type, keycode_event_priority);
     }
 
-    bool have_keycode_events_changed(const KeycodeType& keycode_type)
+    bool have_keycode_events_changed(const std::optional<KeycodeType> keycode_type = std::nullopt)
     {
         return !std::ranges::equal(
             keycode_events.get_filtered_events(keycode_type, KeycodeEventType::finalized),
@@ -167,7 +195,7 @@ public:
 
     auto& get_led_status() { return led_status; }
 
-    void set_led_status(const LedStatus& led_status) { this->led_status = led_status; }
+    void set_led_status(const keyboard::LedStatus& led_status) { this->led_status = led_status; }
 
     /**
      * Life cycle methods
@@ -231,7 +259,7 @@ public:
 
     void update_switch_events()
     {
-        this->switch_events_generator->update(settings, switch_state, switch_events);
+        this->switch_events_generator->update(this);
     }
 
     void generate_keycodes()
@@ -287,7 +315,7 @@ public:
     {
         if (report_id == start_report_id)
         {
-            const LedStatus led_status{*buffer};
+            const keyboard::LedStatus led_status{*buffer};
             this->set_led_status(led_status);
             on_led_status_update();
         }
