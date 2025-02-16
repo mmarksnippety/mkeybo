@@ -101,6 +101,6 @@ void debug_task_async()
         tud_task();
         hid_controller->main_task_async();
         hid_controller->usb_task_async();
-        debug_task_async();
+        // debug_task_async();
     }
 }

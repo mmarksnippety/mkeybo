@@ -106,7 +106,7 @@ public:
      * Executes the main task of the HID controller.
      *
      * This method is responsible for managing the overall flow of the HID
-     * controller's operations. It sequentially:
+     * controller's operations. It sequentially makes:
      * - Updates the state of input devices.
      * - Updates USB reports based on the state of the input devices.
      * - Updates actions based on processed input and current state.

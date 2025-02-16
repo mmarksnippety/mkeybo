@@ -80,6 +80,8 @@ public:
     {
         InputDevice::apply_settings(settings);
         auto keyboard_settings = reinterpret_cast<keyboard::KeyboardSettings<switches_count>*>(settings.get());
+        layouts = keyboard_settings->layouts;
+        layers = keyboard_settings->layers;
         press_min_interval_ms = keyboard_settings->press_min_interval_ms;
         tap_dance_max_interval_ms = keyboard_settings->tap_dance_max_interval_ms;
         hold_min_interval_ms = keyboard_settings->hold_min_interval_ms;
@@ -96,8 +98,22 @@ public:
         reset();
     }
 
+    void reset()
+    {
+        reset_active_layers();
+        reset_active_layout();
+        reset_switch_state();
+        reset_switch_events();
+        reset_keycode_events();
+        // reset prev cycle states
+        std::fill(active_layers_prev_cycle.begin(), active_layers_prev_cycle.end(), false);
+        keycode_events_prev_cycle.reset();
+    }
+
     [[nodiscard]] uint8_t get_press_min_interval_cycles() const {return press_min_interval_cycles; }
+
     [[nodiscard]] uint8_t get_tap_dance_max_interval_cycles() const { return  tap_dance_max_interval_cycles; }
+
     [[nodiscard]] uint8_t get_hold_min_interval_cycles() const { return hold_min_interval_cycles; }
 
     /**
@@ -201,17 +217,6 @@ public:
      * Life cycle methods
      */
 
-    void reset()
-    {
-        reset_active_layers();
-        reset_active_layout();
-        reset_switch_state();
-        reset_switch_events();
-        reset_keycode_events();
-        // reset prev cycle states
-        std::fill(active_layers_prev_cycle.begin(), active_layers_prev_cycle.end(), false);
-        keycode_events_prev_cycle.reset();
-    }
 
     /**
      * @brief Executes the main keyboard task that orchestrates the key processing cycle.

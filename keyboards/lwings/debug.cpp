@@ -39,10 +39,10 @@ void print_logo()
 bool is_any_info_to_print()
 {
     bool is_any_info_to_print = false;
-    // is_any_info_to_print |= std::ranges::any_of(keyboard->get_switch_events(), [](const auto& sw_event)
-    // {
-    //     return sw_event.type != mkeybo::SwitchEventType::idle;
-    // });
+    is_any_info_to_print |= std::ranges::any_of(keyboard->get_switch_events(), [](const auto& sw_event)
+    {
+        return sw_event.type != mkeybo::SwitchEventType::idle;
+    });
     is_any_info_to_print |= !keyboard->get_filtered_keycode_events().empty();
     is_any_info_to_print |= hid_controller->is_any_usb_report_ready();
     return is_any_info_to_print;

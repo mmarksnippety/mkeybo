@@ -15,11 +15,7 @@ public:
     {
     }
 
-    ~HidControllerSettings()
-    {
-        std::cout << "HID controller settings destructor" << std::endl;
-    }
-
+    virtual ~HidControllerSettings() = default;
 };
 
 }

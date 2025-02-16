@@ -2,7 +2,7 @@
 
 #include <cstdint>
 #include <limits>
-#include "../base.hpp"
+#include "mkeybo/components/base.hpp"
 
 
 namespace mkeybo::keyboard {
@@ -19,8 +19,8 @@ public:
 
     void update(Keyboard<switches_count, keycodes_buffer_size>* keyboard)
     {
-        auto switch_events = keyboard->get_switch_events();
-        auto switch_state = keyboard->get_switch_state();
+        auto& switch_state = keyboard->get_switch_state();
+        auto& switch_events = keyboard->get_switch_events();
         for (size_t switch_no = 0; switch_no < switches_count; switch_no++)
         {
             update_switch_event(keyboard, switch_state[switch_no], switch_events[switch_no]);

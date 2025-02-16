@@ -22,7 +22,7 @@ file(GLOB_RECURSE MKEYBO_SOURCES
         mkeybo/components/*.hpp
         debug.hpp
         factories.hpp
-        consts.hpp
+        utils.hpp
         tests/*
 )
 target_sources(tests PRIVATE ${MKEYBO_SOURCES})
