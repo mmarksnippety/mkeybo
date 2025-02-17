@@ -62,7 +62,8 @@ void print_keyboard_info()
 {
     if (!is_any_info_to_print())
         return;
-    // std::cout << std::endl << std::endl;
+    std::cout << "New info!" << std::endl << std::endl;
+
 
     const auto switch_events = keyboard->get_switch_events();
     // for (auto index = 0; const auto& sw_event : switch_events)

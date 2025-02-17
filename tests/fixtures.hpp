@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../mkeybo/components/keyboard/settings.hpp"
+#include "../mkeybo/components/keyboard/keyboard_settings.hpp"
 #include "mkeybo/factories.hpp"
 
 

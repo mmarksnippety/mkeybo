@@ -57,17 +57,4 @@ public:
 
 };
 
-// template <class RuleSettings, size_t switches_count>
-// RuleSettings* get_rule_settings(InputDeviceSettings* settings, const std::string& rule_name)
-// {
-//     auto keyboard_settings = reinterpret_cast<KeyboardSettings<switches_count>*>(settings);
-//     auto rule_settings = keyboard_settings->rules.find(rule_name);
-//     if (rule_settings == keyboard_settings->rules.end())
-//     {
-//         return nullptr;
-//     }
-//     return reinterpret_cast<RuleSettings*>(rule_settings->second);
-// }
-
-
 }

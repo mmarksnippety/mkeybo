@@ -1,19 +1,19 @@
-#pragma once
-
+#include <memory>
 #include "config.hpp"
+#include "keyboard_settings.hpp"
 #include "mkeybo/factories.hpp"
-#include "../../mkeybo/components/keyboard/settings.hpp"
-#include "mkeybo/components/keyboard_rule_settings/tap_dance_rule_settings.hpp"
-#include "mkeybo/components/keyboard_rule_settings/multi_mapping_rule_settings.hpp"
+#include "mkeybo/components/actions.hpp"
+#include "mkeybo/components/keyboard/keyboard_settings.hpp"
+#include "mkeybo/components/keyboard/mapping_rules/tap_dance_mapping_rule_settings.hpp"
+#include "mkeybo/components/keyboard/mapping_rules/multi_mapping_rule_settings.hpp"
 #include "mkeybo/components/base.hpp"
 #include "tusb.h"
 
 
-template <size_t switches_count>
-auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
+std::unique_ptr<mkeybo::keyboard::KeyboardSettings<keyboard_config.switches_count>> create_keyboard_settings()
 {
     // clang-format off
-    auto layout = new mkeybo::KeyboardSettingsLayer<switches_count>{
+    auto layout = new mkeybo::keyboard::KeyboardLayer<keyboard_config.switches_count>{
         .name{"qwerty"},
         .keycodes{
             // 0 ~ 11
@@ -34,13 +34,13 @@ auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
             H_K(HID_KEY_ARROW_LEFT), H_K(HID_KEY_ARROW_DOWN), H_K(HID_KEY_ARROW_UP), H_K(HID_KEY_ARROW_RIGHT)
         }
     };
-    auto layer_down = new mkeybo::KeyboardSettingsLayer<switches_count>{
+    auto layer_down = new mkeybo::keyboard::KeyboardLayer<keyboard_config.switches_count>{
         .name{"down"},
         .keycodes{
             // 0 ~ 11
             H_K(M_LSHIFT(HID_KEY_GRAVE)), H_K(M_LSHIFT(HID_KEY_1)), H_K(M_LSHIFT(HID_KEY_2)), H_K(M_LSHIFT(HID_KEY_3)),
             H_K(M_LSHIFT(HID_KEY_4)), H_K(M_LSHIFT(HID_KEY_5)), H_K(M_LSHIFT(HID_KEY_6)), H_K(M_LSHIFT(HID_KEY_7)),
-            H_K(M_LSHIFT(HID_KEY_8)), H_K(M_LSHIFT(HID_KEY_9)), H_K(M_LSHIFT(HID_KEY_0)), N_K(),
+            H_K(M_LSHIFT(HID_KEY_8)), H_K(M_LSHIFT(HID_KEY_9)), H_K(M_LSHIFT(HID_KEY_0)), H_K(HID_KEY_DELETE),
             // 12 - 23
             H_K(HID_KEY_DELETE), H_K(HID_KEY_F1), H_K(HID_KEY_F2), H_K(HID_KEY_F3),
             H_K(HID_KEY_F4), H_K(HID_KEY_F5), H_K(HID_KEY_F6), H_K(M_LSHIFT(HID_KEY_MINUS)),
@@ -55,7 +55,7 @@ auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
             N_K(), N_K(), N_K(), N_K()
         }
     };
-    auto layer_up = new mkeybo::KeyboardSettingsLayer<switches_count>{
+    auto layer_up = new mkeybo::keyboard::KeyboardLayer<keyboard_config.switches_count>{
         .name{"up"},
         .keycodes{
             // 0 ~ 11
@@ -76,7 +76,7 @@ auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
             N_K(), N_K(), N_K(), N_K()
         }
     };
-    auto layer_navi = new mkeybo::KeyboardSettingsLayer<switches_count>{
+    auto layer_navi = new mkeybo::keyboard::KeyboardLayer<keyboard_config.switches_count>{
         .name{"navi"},
         .keycodes{
             // 0 ~ 11
@@ -98,7 +98,7 @@ auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
             CC_K(HID_USAGE_CONSUMER_VOLUME_INCREMENT), CC_K(HID_USAGE_CONSUMER_SCAN_NEXT)
         }
     };
-    auto layer_spec = new mkeybo::KeyboardSettingsLayer<switches_count>{
+    auto layer_spec = new mkeybo::keyboard::KeyboardLayer<keyboard_config.switches_count>{
         .name{"spec"},
         .keycodes{
             // 0 ~ 11
@@ -119,24 +119,23 @@ auto create_keyboard_settings() -> mkeybo::KeyboardSettings<switches_count>*
             H_K(HID_KEY_HOME), H_K(HID_KEY_PAGE_DOWN), H_K(HID_KEY_PAGE_UP), H_K(HID_KEY_END)
         }
     };
-    auto multi_map_config = new mkeybo::keyboard_rule_settings::MultiMappingRuleSettings( {
+    auto multi_map_config = new mkeybo::keyboard::mapping_rule::MultiMappingRuleSettings( {
         {{LAYER_K(0), LAYER_K(1)}, LAYER_K(2)}
     });
     // clang-format on
-    return new mkeybo::KeyboardSettings<switches_count>(
+    return std::unique_ptr<mkeybo::keyboard::KeyboardSettings<keyboard_config.switches_count>>(
+        new mkeybo::keyboard::KeyboardSettings<keyboard_config.switches_count>(
         "qwerty",
         {layout},
         {layer_down, layer_up, layer_navi, layer_spec},
         {
-            {mkeybo::keyboard_rule_settings::rule_name_multi_mapping, multi_map_config},
+            {mkeybo::keyboard::mapping_rule::rule_name_multi_mapping, multi_map_config},
         },
         50, // switches_refresh_interval_ms
         50, // press_min_interval_ms
         150, // tap_dance_max_interval_ms
         200 // hold_min_interval_ms
-    );
+    ));
 
 }
 
-template auto create_keyboard_settings<keyboard_config.switches_count>()
-    -> mkeybo::KeyboardSettings<keyboard_config.switches_count>*;

@@ -38,6 +38,8 @@ protected:
     uint8_t action_buffer_index = 0;
     // input devices
     std::vector<InputDevice*> input_devices{};
+    // other device (like leds, displays etc)
+    std::vector<Device*> devices{};
     // tasks
     uint16_t main_task_interval_ms{5};
     uint32_t last_main_task_ts{};
@@ -50,12 +52,14 @@ public:
         const std::string_view manufactured_name,
         const std::map<uint16_t, actions::ActionExecutor*>& action_executors,
         const std::vector<InputDevice*>& input_devices,
+        const std::vector<Device*>& devices,
         const std::unique_ptr<HidControllerSettings>& settings
         ) :
         device_name(device_name),
         manufactured_name(manufactured_name),
         action_executors(action_executors),
-        input_devices(input_devices)
+        input_devices(input_devices),
+        devices(devices)
     {
         apply_settings(settings);
         setup_usb_reports();
@@ -69,7 +73,6 @@ public:
         {
             return;
         }
-        main_task_interval_ms = settings->main_task_interval_ms;
         usb_task_interval_ms = settings->usb_task_interval_ms;
     }
 
@@ -93,17 +96,9 @@ public:
      * Lifecycle
      */
 
-    void main_task_async()
-    {
-        if (const auto current_ts = get_ms_since_boot(); current_ts - last_main_task_ts >= main_task_interval_ms)
-        {
-            main_task();
-            last_main_task_ts = current_ts;
-        }
-    }
-
     /**
-     * Executes the main task of the HID controller.
+     * Executes the input device main task of the HID controller.
+     * Return true if any input devices update state occur
      *
      * This method is responsible for managing the overall flow of the HID
      * controller's operations. It sequentially makes:
@@ -112,21 +107,51 @@ public:
      * - Updates actions based on processed input and current state.
      * - Executes the actions using the action manager.
      */
-    void main_task()
+    bool input_devices_main_task()
     {
-        reset_actions();
+        bool updated = false;
         for (const auto& input_device : input_devices)
         {
-            // TODO: generate two event: update_state, and report generated
-            if (input_device->update_state_async())
-            {
+            updated |= input_device->update_state_async();
+        }
+        if (updated)
+        {
+            reset_actions();
+            for (const auto& input_device : input_devices) {
                 input_device->update_usb_reports(this);
                 input_device->update_actions(this);
             }
+            execute_actions();
         }
-        execute_actions();
+        return updated;
     }
 
+    /**
+     * Call all devices main_task. Device is responsible for non-blocking tasking
+     */
+    void devices_main_task()
+    {
+        for (const auto& device : devices)
+        {
+            device->main_task();
+        }
+    }
+
+    /**
+     * Call all devices update_state. This should be called only if necessary.
+     * Update state may took long time (ex on slow i2c displays)
+     */
+    void devices_update_state()
+    {
+        for (const auto& device : devices)
+        {
+            device->update_state();
+        }
+    }
+
+    /**
+     * Main usb task to send usb reports
+     */
     void usb_task_async()
     {
         if (const auto current_ts = mkeybo::get_ms_since_boot(); current_ts - last_usb_task_ts >= usb_task_interval_ms)
@@ -333,6 +358,10 @@ public:
     virtual void on_usb_mount()
     {
         std::cout << "USB mounted" << std::endl;
+        for (const auto& device : devices)
+        {
+            device->on_usb_mount();
+        }
         for (const auto& input_device : input_devices)
         {
             input_device->on_usb_mount();
@@ -342,6 +371,10 @@ public:
     virtual void on_usb_umount()
     {
         std::cout << "USB unmounted" << std::endl;
+        for (const auto& device : devices)
+        {
+            device->on_usb_umount();
+        }
         for (const auto& input_device : input_devices)
         {
             input_device->on_usb_umount();
@@ -351,6 +384,10 @@ public:
     virtual void on_usb_suspend()
     {
         std::cout << "USB suspended" << std::endl;
+        for (const auto& device : devices)
+        {
+            device->on_usb_suspend();
+        }
         for (const auto& input_device : input_devices)
         {
             input_device->on_usb_suspend();
@@ -360,6 +397,10 @@ public:
     virtual void on_usb_resume()
     {
         std::cout << "USB resumed" << std::endl;
+        for (const auto& device : devices)
+        {
+            device->on_usb_resume();
+        }
         for (const auto& input_device : input_devices)
         {
             input_device->on_usb_resume();
@@ -371,6 +412,10 @@ public:
         uint8_t const* buffer, const uint16_t bufsize)
     {
         std::cout << "USB report received" << std::endl;
+        for (const auto& device : devices)
+        {
+            device->on_usb_report_receive(instance, report_id, report_type, buffer, bufsize);
+        }
         for (const auto& input_device : input_devices)
         {
             input_device->on_usb_report_receive(instance, report_id, report_type, buffer, bufsize);

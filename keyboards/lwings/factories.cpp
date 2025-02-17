@@ -2,7 +2,7 @@
 #include "config.hpp"
 #include "factories.hpp"
 #include "mkeybo/factories.hpp"
-#include "mkeybo/components/keyboard/settings.hpp"
+#include "mkeybo/components/keyboard/keyboard_settings.hpp"
 #include "mkeybo/components/keyboard/mapping_rules/tap_dance_mapping_rule_settings.hpp"
 #include "mkeybo/components/keyboard/mapping_rules/multi_mapping_rule_settings.hpp"
 #include "mkeybo/components/base.hpp"
@@ -109,7 +109,7 @@ std::unique_ptr<mkeybo::keyboard::KeyboardSettings<keyboard_config.switches_coun
 
 std::unique_ptr<mkeybo::HidControllerSettings> create_hid_controller_settings()
 {
-    return std::make_unique<mkeybo::HidControllerSettings>(2, 10);
+    return std::make_unique<mkeybo::HidControllerSettings>(10);
 }
 
 
@@ -121,7 +121,14 @@ Keyboard<keyboard_config.switches_count>* create_keyboard()
 }
 
 
-mkeybo::HidController* create_hid_controller(Keyboard<keyboard_config.switches_count>* keyboard)
+StatusDisplay<keyboard_config.switches_count>* create_status_display(Keyboard<keyboard_config.switches_count>* keyboard)
+{
+    return new StatusDisplay<keyboard_config.switches_count>(display_config, keyboard);
+}
+
+
+mkeybo::HidController* create_hid_controller(Keyboard<keyboard_config.switches_count>* keyboard,
+                                             StatusDisplay<keyboard_config.switches_count>* status_display)
 {
     const auto hid_controller = new mkeybo::HidController(
         keyboard_config.keyboard_name,
@@ -131,6 +138,7 @@ mkeybo::HidController* create_hid_controller(Keyboard<keyboard_config.switches_c
             {mkeybo::actions::action_reboot_to_bootloader_id, new mkeybo::actions::ActionExecutorRebootToBootloader()},
         },
         {keyboard},
+        {status_display},
         create_hid_controller_settings()
         );
     return hid_controller;

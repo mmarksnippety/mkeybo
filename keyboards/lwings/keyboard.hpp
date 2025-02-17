@@ -18,27 +18,27 @@ public:
     {
     }
 
-    void on_update_switch_events() override
-    {
-        for (auto index = 0; const auto& sw_event : this->switch_events)
-        {
-            if (sw_event.type != mkeybo::SwitchEventType::idle)
-            {
-                sw_event_info(sw_event, index);
-                std::cout << std::endl;
-            }
-            index++;
-        }
-    }
-
-    void sw_event_info(mkeybo::SwitchEvent sw_event, uint8_t sw_index)
-    {
-        std::cout << "switch|" << std::to_string(sw_index++) << "|"
-            << mkeybo::get_switch_event_type_name(sw_event.type) << "|"
-            << "p=" << std::to_string(sw_event.pressed) << "|"
-            << "r=" << std::to_string(sw_event.released) << "|"
-            << "td=" << std::to_string(sw_event.tap_dance) << "|"
-            << "h=" << std::boolalpha << sw_event.hold;
-    }
+    // void on_update_switch_events() override
+    // {
+    //     for (auto index = 0; const auto& sw_event : this->switch_events)
+    //     {
+    //         if (sw_event.type != mkeybo::SwitchEventType::idle)
+    //         {
+    //             sw_event_info(sw_event, index);
+    //             std::cout << std::endl;
+    //         }
+    //         index++;
+    //     }
+    // }
+    //
+    // void sw_event_info(mkeybo::SwitchEvent sw_event, uint8_t sw_index)
+    // {
+    //     std::cout << "switch|" << std::to_string(sw_index++) << "|"
+    //         << mkeybo::get_switch_event_type_name(sw_event.type) << "|"
+    //         << "p=" << std::to_string(sw_event.pressed) << "|"
+    //         << "r=" << std::to_string(sw_event.released) << "|"
+    //         << "td=" << std::to_string(sw_event.tap_dance) << "|"
+    //         << "h=" << std::boolalpha << sw_event.hold;
+    // }
 
 };
