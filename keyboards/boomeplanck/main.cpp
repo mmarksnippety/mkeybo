@@ -1,10 +1,10 @@
 #include "pico/stdlib.h"
 #include "mkeybo/components/hid_controller.hpp"
 #include "config.hpp"
-#include "keyboard_settings.hpp"
 #include "keyboard.hpp"
-#include "factories.hpp"
 #include "status_leds.hpp"
+#include "factories.hpp"
+
 
 mkeybo::HidController* hid_controller;
 Keyboard<keyboard_config.switches_count>* keyboard;

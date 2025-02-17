@@ -4,7 +4,9 @@
 #include "pwm_led.hpp"
 #include "keyboard.hpp"
 
-
+/**
+ * Two status leds, indicates keyboard layers, and usb mounting
+ */
 template <size_t switches_count, size_t keycodes_buffer_size = 20>
 class StatusLeds final : public mkeybo::Device
 {

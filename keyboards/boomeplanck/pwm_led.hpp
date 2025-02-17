@@ -1,7 +1,6 @@
 #pragma once
 
 #include "hardware/pwm.h"
-#include "hardware/timer.h"
 #include "pico/stdlib.h"
 #include "mkeybo/utils.hpp"
 
