@@ -7,6 +7,7 @@
 
 constexpr mkeybo::KeyboardConfig keyboard_config{
     .switches_count = 4 * 12,
+    .keycodes_buffer_size = 20,
     .keyboard_name = "boomeplanck",
     .manufactured_name = "mkeybo",
 };
