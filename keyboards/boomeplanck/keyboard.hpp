@@ -9,11 +9,12 @@ template <size_t switches_count, size_t keycodes_buffer_size = 20>
 class Keyboard final : public mkeybo::Keyboard<switches_count, keycodes_buffer_size>
 {
 public:
-    explicit Keyboard() :
+    explicit Keyboard(const std::unique_ptr<mkeybo::InputDeviceSettings>& settings) :
         mkeybo::Keyboard<switches_count, keycodes_buffer_size>(
             mkeybo::create_switch_reader_matrix<switches_count>(switch_reader_config),
             mkeybo::create_switch_events_generator<switches_count, keycodes_buffer_size>(),
-            mkeybo::create_keycode_mapping_rules<switches_count, keycodes_buffer_size>()
+            mkeybo::create_keycode_mapping_rules<switches_count, keycodes_buffer_size>(),
+            settings
             )
     {
     }

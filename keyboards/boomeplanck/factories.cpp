@@ -6,8 +6,7 @@
 
 Keyboard<keyboard_config.switches_count>* create_keyboard()
 {
-    const auto keyboard = new Keyboard<keyboard_config.switches_count>();
-    keyboard->apply_settings(create_keyboard_settings());
+    const auto keyboard = new Keyboard<keyboard_config.switches_count>(create_keyboard_settings());
     return keyboard;
 }
 

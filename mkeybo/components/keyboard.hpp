@@ -55,10 +55,12 @@ public:
     Keyboard(keyboard::SwitchReader<switches_count>* switch_reader,
              keyboard::SwitchEventsGenerator<switches_count, keycodes_buffer_size>* switch_events_generator,
              const std::vector<keyboard::MappingRule<switches_count, keycodes_buffer_size>*>&
-             keycode_mapping_rules) :
+             keycode_mapping_rules,
+             const std::unique_ptr<InputDeviceSettings>& settings) :
         switch_reader(switch_reader), switch_events_generator(switch_events_generator),
         keycodes_mapping_rules(keycode_mapping_rules)
     {
+        Keyboard<switches_count, keycodes_buffer_size>::apply_settings(settings);
     }
 
     ~Keyboard() override
@@ -202,6 +204,8 @@ public:
             keycode_events.get_filtered_events(keycode_type, KeycodeEventType::finalized),
             keycode_events_prev_cycle.get_filtered_events(keycode_type, KeycodeEventType::finalized));
     }
+
+    auto& get_all_keycode_events() { return keycode_events; }
 
     /**
      * Led status

@@ -32,11 +32,11 @@ public:
         return true;
     }
 
-    void push(const Keycode& keycode, const uint8_t switch_no = std::numeric_limits<uint8_t>::max(),
+    bool push(const Keycode& keycode, const uint8_t switch_no = std::numeric_limits<uint8_t>::max(),
               const KeycodeEventType type = KeycodeEventType::draft,
               const KeycodeEventPriority priority = KeycodeEventPriority::normal)
     {
-        push(KeycodeEvent{type, priority, keycode, switch_no});
+        return push(KeycodeEvent{type, priority, keycode, switch_no});
     }
 
     auto& get_all_events() { return buffer; }

@@ -81,7 +81,7 @@ std::unique_ptr<mkeybo::keyboard::KeyboardSettings<keyboard_config.switches_coun
             N_K(), N_K(), N_K(), N_K(), N_K(),
         }
     };
-    auto tap_dance_config = new mkeybo::keyboard::mapping_rule::TapDanceRuleSettings({
+    auto tap_dance_config = new mkeybo::keyboard::mapping_rule::TapDanceMappingRuleSettings({
         {H_K(HID_KEY_Z), {{255, H_K(HID_KEY_SHIFT_LEFT)}}},
         {H_K(HID_KEY_D), {{3, ACTION_K(mkeybo::actions::action_reboot_id)}}}
     });

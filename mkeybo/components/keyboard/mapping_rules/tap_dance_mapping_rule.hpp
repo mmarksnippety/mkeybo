@@ -27,7 +27,7 @@ public:
     {
         if (const auto settings_it = rule_settings.find(get_settings_name()); settings_it != rule_settings.end())
         {
-            const auto settings = reinterpret_cast<TapDanceRuleSettings*>(settings_it->second);
+            const auto settings = reinterpret_cast<TapDanceMappingRuleSettings*>(settings_it->second);
             actions = settings->actions;
         }
     }

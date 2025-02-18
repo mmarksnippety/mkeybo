@@ -119,6 +119,7 @@ struct KeycodeEvent
 struct KeyboardConfig
 {
     size_t switches_count{};
+    size_t keycodes_buffer_size{};
     std::string keyboard_name{};
     std::string manufactured_name{};
 };
