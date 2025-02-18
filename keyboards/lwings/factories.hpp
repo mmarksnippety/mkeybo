@@ -12,5 +12,6 @@ Keyboard<keyboard_config.switches_count>* create_keyboard();
 StatusDisplay<keyboard_config.switches_count>*
 create_status_display(Keyboard<keyboard_config.switches_count>* keyboard);
 
-mkeybo::HidController* create_hid_controller(Keyboard<keyboard_config.switches_count>* keyboard,
-                                             StatusDisplay<keyboard_config.switches_count>* status_display);
+mkeybo::HidController*
+create_hid_controller(Keyboard<keyboard_config.switches_count>* keyboard,
+                      StatusDisplay<keyboard_config.switches_count>* status_display);

@@ -19,7 +19,6 @@
 
 namespace mkeybo {
 
-
 template <size_t switches_count, size_t keycodes_buffer_size = 20>
 class Keyboard : public InputDevice
 {
@@ -109,9 +108,9 @@ public:
         keycode_events_prev_cycle.reset();
     }
 
-    [[nodiscard]] uint8_t get_press_min_interval_cycles() const {return press_min_interval_cycles; }
+    [[nodiscard]] uint8_t get_press_min_interval_cycles() const { return press_min_interval_cycles; }
 
-    [[nodiscard]] uint8_t get_tap_dance_max_interval_cycles() const { return  tap_dance_max_interval_cycles; }
+    [[nodiscard]] uint8_t get_tap_dance_max_interval_cycles() const { return tap_dance_max_interval_cycles; }
 
     [[nodiscard]] uint8_t get_hold_min_interval_cycles() const { return hold_min_interval_cycles; }
 

@@ -24,7 +24,7 @@ target_include_directories(boomeplanck PRIVATE
         .
 )
 pico_set_program_name(boomeplanck "boomeplanck")
-pico_set_program_version(boomeplanck "1.0.1")
+pico_set_program_version(boomeplanck "1.0.4")
 pico_enable_stdio_uart(boomeplanck 1)
 pico_enable_stdio_usb(boomeplanck 0)
 pico_add_extra_outputs(boomeplanck)

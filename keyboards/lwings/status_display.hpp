@@ -2,18 +2,13 @@
 
 #include "ssd1306.h"
 #include "keyboard.hpp"
-#include "config.hpp"
 #include "status_display_config.hpp"
-#include "mkeybo/components/base.hpp"
-#include "mkeybo/components/input_device.hpp"
 #include "status_display.hpp"
 #include <textRenderer/12x16_font.h>
 #include <textRenderer/TextRenderer.h>
 #include "hardware/gpio.h"
 #include "hardware/i2c.h"
-#include "keyboard.hpp"
-#include "mkeybo/components/base.hpp"
-#include <iostream>
+#include "mkeybo/components/input_device.hpp"
 #include "logo.hpp"
 
 
@@ -33,7 +28,7 @@ class StatusDisplay final : public mkeybo::Device
 
 public:
     explicit StatusDisplay(const DisplayConfig& config, Keyboard<switches_count, keycodes_buffer_size>* keyboard):
-        keyboard(keyboard)
+        mkeybo::Device(), keyboard(keyboard)
     {
         i2c_init(config.i2c, 100 * 1000);
         gpio_set_function(config.sda_pin, GPIO_FUNC_I2C);

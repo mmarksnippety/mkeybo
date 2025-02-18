@@ -1,6 +1,6 @@
 #include <memory>
-#include "config.hpp"
 #include "factories.hpp"
+#include "config.hpp"
 #include "mkeybo/factories.hpp"
 #include "mkeybo/components/keyboard/keyboard_settings.hpp"
 #include "mkeybo/components/keyboard/mapping_rules/tap_dance_mapping_rule_settings.hpp"
